@@ -6,10 +6,10 @@ import os
 
 app = Flask('')
 
-@app.route('/')
+@app.route('/',methods=['GET','HEAD'])
 def home():
     print("───> [PING] Requête de maintien reçue !")
-    return "Le bot est en ligne !"
+    return "Le bot est en ligne !",200
 
 def run():
     port=int(os.environ.get("PORT",8080))
