@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\keep_alive.py||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\keep_alive.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -15,12 +15,12 @@
       "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\cogs\\Reaction_role.py||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\keep_alive.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\keep_alive.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,20 +30,19 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "keep_alive.py",
               "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\keep_alive.py",
               "RelativeDocumentMoniker": "Bot-Discord\\keep_alive.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\keep_alive.py",
               "RelativeToolTip": "Bot-Discord\\keep_alive.py",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-23T17:31:45.185Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-23T17:31:45.185Z"
             },
             {
               "$type": "Document",
@@ -55,31 +54,21 @@
               "RelativeToolTip": "Bot-Discord\\.env",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-23T17:22:29.928Z"
+              "WhenOpened": "2026-02-23T17:22:29.928Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "Reaction_role.py",
               "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py",
               "RelativeDocumentMoniker": "Bot-Discord\\cogs\\Reaction_role.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py",
               "RelativeToolTip": "Bot-Discord\\cogs\\Reaction_role.py",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAA8AAAAAAAAAA==",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAAABEAAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-19T13:13:01.869Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Annonce_ranked.py",
-              "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
-              "RelativeDocumentMoniker": "Bot-Discord\\cogs\\Annonce_ranked.py",
-              "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
-              "RelativeToolTip": "Bot-Discord\\cogs\\Annonce_ranked.py",
-              "ViewState": "AgIAACIBAAAA/vTYlsEowFAAAABBAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-13T18:53:14.703Z"
+              "WhenOpened": "2026-02-19T13:13:01.869Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -89,9 +78,23 @@
               "RelativeDocumentMoniker": "Bot-Discord\\main.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\main.py",
               "RelativeToolTip": "Bot-Discord\\main.py",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAACEAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-10T09:06:48.987Z"
+              "WhenOpened": "2026-02-10T09:06:48.987Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Annonce_ranked.py",
+              "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
+              "RelativeDocumentMoniker": "Bot-Discord\\cogs\\Annonce_ranked.py",
+              "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
+              "RelativeToolTip": "Bot-Discord\\cogs\\Annonce_ranked.py",
+              "ViewState": "AgIAAPwAAAAAAAAAAAAAAAkBAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-02-13T18:53:14.703Z",
+              "EditorCaption": ""
             }
           ]
         }

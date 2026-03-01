@@ -249,7 +249,7 @@ class CreationRankedCog(commands.Cog):
             textuel_teams=["『🟦』team-a","『🟥』team-b"]
             overwrite_choix_teams = {
                     interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False, connect=False),
-                    discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked"): discord.PermissionOverwrite(view_channel=True, connect=True),
+                    discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked"): discord.PermissionOverwrite(view_channel=True, connect=True,speak=True),
                     discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked"): discord.PermissionOverwrite(manage_channels=True, mute_members=True, move_members=True)
                 }
 
@@ -260,10 +260,11 @@ class CreationRankedCog(commands.Cog):
                     }
 
             if mode_jeux=="Teams":
-                # On créer le salon conférence pour le choix des équipes
-                conference=await interaction.guild.create_stage_channel(name="『🎤』choix-des-teams",category=category,overwrites=overwrite_choix_teams)
-                # On ajoute un topic 
-                await conference.create_instance(topic="Choix des membres par les capitaines")
+                # On créer un salon pour que les capitaines fassent le choix des équipes
+                choix_cap=await interaction.guild.create_voice_channel(name="『🎤』choix-des-teams",category=category,overwrites=overwrite_choix_teams)
+                #Ajout d'un status
+                await choix_cap.edit(status="📝 Choix des membres par les capitaines")
+                
                 # On créer les salons pour les deux équipes (Team A et Team B)
                 for index in range(2):
                     if index==0:
