@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\main.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\.env||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|solutionrelative:Bot-Discord\\cogs\\Annonce_ranked.py||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D3B3A735-2E3F-47FD-A400-78FA6E27DEC0}|Bot-Discord\\Bot-Discord.pyproj|C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py||{8B382828-6202-11D1-8870-0000F87579D2}",
@@ -30,8 +30,21 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": ".env",
+              "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\.env",
+              "RelativeDocumentMoniker": "Bot-Discord\\.env",
+              "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\.env",
+              "RelativeToolTip": "Bot-Discord\\.env",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-03-08T17:19:54.595Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 4,
@@ -46,52 +59,39 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": ".env",
-              "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\.env",
-              "RelativeDocumentMoniker": "Bot-Discord\\.env",
-              "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\.env",
-              "RelativeToolTip": "Bot-Discord\\.env",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAABWAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-02-23T17:22:29.928Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 3,
               "Title": "Reaction_role.py",
               "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py",
               "RelativeDocumentMoniker": "Bot-Discord\\cogs\\Reaction_role.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Reaction_role.py",
               "RelativeToolTip": "Bot-Discord\\cogs\\Reaction_role.py",
-              "ViewState": "AgIAAFcAAAAAAAAAAAAAABEAAAA8AAAAAAAAAA==",
+              "ViewState": "AgIAABgAAAAAAAAAAAAAABEAAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-02-19T13:13:01.869Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "main.py",
               "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\main.py",
               "RelativeDocumentMoniker": "Bot-Discord\\main.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\main.py",
               "RelativeToolTip": "Bot-Discord\\main.py",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAACEAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAA0AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-02-10T09:06:48.987Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "Annonce_ranked.py",
               "DocumentMoniker": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
               "RelativeDocumentMoniker": "Bot-Discord\\cogs\\Annonce_ranked.py",
               "ToolTip": "C:\\Users\\Mathis.N\\Documents\\GitHub\\bot-ranked-multigaming\\Bot-Discord\\cogs\\Annonce_ranked.py",
               "RelativeToolTip": "Bot-Discord\\cogs\\Annonce_ranked.py",
-              "ViewState": "AgIAAPwAAAAAAAAAAAAAAAkBAABWAAAAAAAAAA==",
+              "ViewState": "AgIAAFoAAAAAAAAAAAAAAHUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-02-13T18:53:14.703Z",
               "EditorCaption": ""

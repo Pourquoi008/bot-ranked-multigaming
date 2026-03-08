@@ -4,6 +4,7 @@ from sqlite3.dbapi2 import Timestamp
 import string
 import discord
 from discord import app_commands
+from discord import role
 from discord.ext import commands
 from datetime import datetime, timedelta, timezone
 import asyncio
@@ -106,6 +107,15 @@ class CreationRankedCog(commands.Cog):
         await interaction.response.send_modal(AnnonceRankedModal())
         if interaction.channel.name == "『🥇』inscription-ranked":
             try:
+                # Supprimer le rôle Inscrit-ranked a tout le monde
+                # On récupère l'objet du rôle Inscrit-ranked
+                role_inscritranked=discord.utils.get(interaction.guild.roles,name="📝 | Inscrit Ranked")
+                # On enlève le rôle a tous les membres qui pourrait l'avoir
+                if role_inscritranked:
+                    for membre in role_inscritranked.members:
+                        await membre.remove_roles(role_inscritranked, reason="Réinitialisation des inscrits")
+                    print(f"Rôle {role_inscritranked.name} retiré à tout le monde.", flush=True)
+
                 # On supprime les 5 derniers messages
                 await interaction.channel.purge(limit=5)
             except discord.Forbidden:
@@ -221,6 +231,21 @@ class CreationRankedCog(commands.Cog):
                             erreur.append("❌ Erreur : Le salon 『🔍』logs-scores est introuvable.")
             else:
                 erreur.append("❌ Erreur : Le salon 『📜』scores n'existe pas.")
+
+            # Enlever les rôles team A ou team B aux membres
+            # On récupère les objets rôles correspondant aux rôles team A et team B
+            role_teama=discord.utils.get(interaction.guild.roles, name="🔹 | Team A")
+            role_teamb=discord.utils.get(interaction.guild.roles, name="🔸 | Team B")
+            # Si le rôle existe on enlève le rôle aux membres qui l'ont
+            if role_teama:
+                for membre in role_teama.members:
+                    await membre.remove_roles(role_teama,reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teama.name} retiré à tout le monde.", flush=True)
+            # Pareil pour le rôle Team B
+            if role_teamb:
+                for member in role_teamb.members:
+                    await member.remove_roles(role_teamb, reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teamb.name} retiré à tout le monde.", flush=True)
 
             # Salons a supprimer (tous les salons sauf saison-2,règles,logs-scores,chat-ranked,inscriptions-ranked)
             salons_deleted=[]
