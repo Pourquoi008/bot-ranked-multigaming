@@ -22,7 +22,7 @@ jobs:
 
       - name: Installer les dépendances
         run: |
-          cd Bot-discord
+          cd Bot-Discord
           pip install discord.py flask python-dotenv
 
       - name: Lancer le Bot Discord
