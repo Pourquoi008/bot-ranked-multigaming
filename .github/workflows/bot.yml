@@ -1,0 +1,36 @@
+name: Lancement du Bot Discord
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    
+    # 1. On indique à GitHub d'utiliser l'environnement où se trouvent tes jetons
+    environment: TOKEN 
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer les dépendances
+        run: |
+          cd Bot-discord
+          pip install discord.py flask python-dotenv
+
+      - name: Lancer le Bot Discord
+        env:
+          # 2. On lie les variables avec les VRAIS noms de ta capture d'écran
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+        run: |
+          cd Bot-discord
+          python main.py  # Remplace par ton fichier principal si besoin
