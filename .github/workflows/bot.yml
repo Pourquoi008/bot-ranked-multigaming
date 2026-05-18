@@ -32,5 +32,5 @@ jobs:
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
         run: |
-          cd Bot-discord
+          cd Bot-Discord
           python main.py  # Remplace par ton fichier principal si besoin
