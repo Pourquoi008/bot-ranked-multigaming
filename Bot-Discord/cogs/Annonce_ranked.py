@@ -16,8 +16,8 @@ dico_semaine = {0: "Lundi", 1: "Mardi", 2: "Mercredi", 3: "Jeudi", 4: "Vendredi"
 dico_mois=["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin","Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
 # Mode de jeux disponibles pour les ranked
 modes_dispo=["solo","duo","trio","quatuor","teams"]
-# Salons a conserver dans la catégories ranked
-salons_save=["『🔍』logs-scores","『📜』règles","『📆』saison-2","『💬』chat-ranked","『🥇』inscription-ranked","next-season-game"]
+# Salons a supprimer dans la catégories ranked
+salons_suppr=["『🔍』logs-scores","『📜』scores","『🔵』TEAM A","『🔴』TEAM B","『🟦』team-a","『🟥』team-b","『🎤』choix-des-teams","『🗣️』FFA","『👤』ffa"]
 
 # -- Interface pour Annoncer une Ranked + Affichage de celle-ci --
 class AnnonceRankedModal(discord.ui.Modal,title="Annoncer une ranked"):
@@ -102,7 +102,7 @@ class CreationRankedCog(commands.Cog):
         print("Le système d'annonce de ranked est prêt !")
 
     #-- Annoncer une Ranked --
-    @app_commands.command(name="annonce-ranked",description="Annoncer une ranked")
+    @app_commands.command(name="annonce-ranked",description="Annoncer une ranked",id_message=int)
     async def annonce_ranked(self,interaction:discord.Interaction):
         await interaction.response.send_modal(AnnonceRankedModal())
         if interaction.channel.name == "『🥇』inscription-ranked":
@@ -184,11 +184,11 @@ class CreationRankedCog(commands.Cog):
             jour_num=aujourdhui.day
             nom_mois=dico_mois[aujourdhui.month]
 
-            # On récupère la category
-            category=discord.utils.get(interaction.guild.categories,name="┗⎯⎯⎯|⚜️| Ranked |⚜️|⎯⎯⎯┑")
+            # On récupère la category associé au channel inscription-ranked
+            category=salon_inscription.category
 
             if not category:
-                await interaction.followup.send("Catégorie ┗⎯⎯⎯|⚜️| Ranked |⚜️|⎯⎯⎯┑ introuvable.", ephemeral=True)
+                await interaction.followup.send("La catégorie du salon 『🥇』inscription-ranked est introuvable.", ephemeral=True)
                 return
 
             # Backup salon scores
@@ -199,9 +199,9 @@ class CreationRankedCog(commands.Cog):
                 if topic_scores:
                     # On sépare le topic en mots
                     mots_topic=topic_scores.split()
-                    if len(mots_topic)>=5:
+                    if len(mots_topic)>=5:not
                         date_session=f"{mots_topic[3]} {mots_topic[4]}"
-                    # Création du message a envoyer dans Backup Score avec le fichier Backup.txt
+                    # Création du message a envoyer dans Backup Score avec le notfichier Backup.txt
                     messages=[f"--- BACKUP SCORES DU {date_session} ---"]
                     # Récupération des messages présents dans le salon
                     async for msg in salon_score.history(limit=30,oldest_first=True):
@@ -247,10 +247,14 @@ class CreationRankedCog(commands.Cog):
                     await member.remove_roles(role_teamb, reason="Réinitialisation des équipes")
                 print(f"Rôle {role_teamb.name} retiré à tout le monde.", flush=True)
 
-            # Salons a supprimer (tous les salons sauf saison-2,règles,logs-scores,chat-ranked,inscriptions-ranked)
+            # Salons a supprimer (supprimer les salons renseignés uniquement)
             salons_deleted=[]
             for salon in category.channels:
-                if salon.name not in salons_save:
+                # Supprimer les salons généraux comme le salon score ou annonce ranked
+                if salon.name in salons_suppr:
+                    salons_deleted.append(salon)
+                # Supprimer tous les salons qui commence par 『👥』DUO, 『👪』TRIO ou 『👨‍👩‍👧‍👦』QUATUOR
+                elif salon.name.startswith("『👥』DUO") or salon.name.startswith("『👪』TRIO") or salon.name.startswith("『👨‍👩‍👧‍👦』QUATUOR"):
                     salons_deleted.append(salon)
 
             # Suppression des salons
