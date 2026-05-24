@@ -102,8 +102,8 @@ class CreationRankedCog(commands.Cog):
         print("Le système d'annonce de ranked est prêt !")
 
     #-- Annoncer une Ranked --
-    @app_commands.command(name="annonce-ranked",description="Annoncer une ranked",id_message=int)
-    async def annonce_ranked(self,interaction:discord.Interaction):
+    @app_commands.command(name="annonce-ranked",description="Annoncer une ranked")
+    async def annonce_ranked(self,interaction:discord.Interaction,id_message:Optional[int]=None):
         await interaction.response.send_modal(AnnonceRankedModal())
         if interaction.channel.name == "『🥇』inscription-ranked":
             try:
