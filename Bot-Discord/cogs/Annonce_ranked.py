@@ -199,7 +199,7 @@ class CreationRankedCog(commands.Cog):
                 if topic_scores:
                     # On sépare le topic en mots
                     mots_topic=topic_scores.split()
-                    if len(mots_topic)>=5:not
+                    if len(mots_topic)>=5:
                         date_session=f"{mots_topic[3]} {mots_topic[4]}"
                     # Création du message a envoyer dans Backup Score avec le notfichier Backup.txt
                     messages=[f"--- BACKUP SCORES DU {date_session} ---"]
