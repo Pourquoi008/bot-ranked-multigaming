@@ -27,7 +27,7 @@ async def on_ready():
 
 @bot.tree.command(name="test",description="Test de commande")
 async def test(interaction:discord.Interaction):
-    await interaction.response.send_message("Je test des chose")
+    await interaction.response.send_message("Je test des choses !")
 
 
 keep_alive()
