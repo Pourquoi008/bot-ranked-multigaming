@@ -17,7 +17,7 @@ dico_mois=["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin","Juillet", 
 # Mode de jeux disponibles pour les ranked
 modes_dispo=["solo","duo","trio","quatuor","teams"]
 # Salons a supprimer dans la catégories ranked
-salons_suppr=["『🔍』logs-scores","『📜』scores","『🎤』choix-des-teams","『🗣️』FFA","『👤』ffa"]
+salons_suppr=["『📜』scores","『🎤』choix-des-teams","『🗣️』FFA","『👤』ffa"]
 
 # -- Interface pour Annoncer une Ranked + Affichage de celle-ci --
 class AnnonceRankedModal(discord.ui.Modal,title="Annoncer une ranked"):
