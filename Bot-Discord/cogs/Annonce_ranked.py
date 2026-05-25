@@ -17,7 +17,7 @@ dico_mois=["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin","Juillet", 
 # Mode de jeux disponibles pour les ranked
 modes_dispo=["solo","duo","trio","quatuor","teams"]
 # Salons a supprimer dans la catégories ranked
-salons_suppr=["『🔍』logs-scores","『📜』scores","『🔵』TEAM A","『🔴』TEAM B","『🟦』team-a","『🟥』team-b","『🎤』choix-des-teams","『🗣️』FFA","『👤』ffa"]
+salons_suppr=["『🔍』logs-scores","『📜』scores","『🎤』choix-des-teams","『🗣️』FFA","『👤』ffa"]
 
 # -- Interface pour Annoncer une Ranked + Affichage de celle-ci --
 class AnnonceRankedModal(discord.ui.Modal,title="Annoncer une ranked"):
@@ -256,6 +256,9 @@ class CreationRankedCog(commands.Cog):
                 # Supprimer tous les salons qui commence par 『👥』DUO, 『👪』TRIO ou 『👨‍👩‍👧‍👦』QUATUOR
                 elif salon.name.startswith("『👥』DUO") or salon.name.startswith("『👪』TRIO") or salon.name.startswith("『👨‍👩‍👧‍👦』QUATUOR"):
                     salons_deleted.append(salon)
+                # Supprimer tous les salons qui contient TEAM ou team ou TeaM dans leur nom
+                elif "team" in salon.name.lower():
+                    salons_deleted.append(salon)
 
             # Suppression des salons
             for channel in salons_deleted:
@@ -289,27 +292,85 @@ class CreationRankedCog(commands.Cog):
                     }
 
             if mode_jeux=="Teams":
+                # 1. Configuration de TOUTES les teams possibles (rôles)
+                config_roles_teams = [
+                    "🔹 | Team A",
+                    "🔸 | Team B",
+                    "🟢 | Team C",
+                    "🟡 | Team D",
+                    "🟣 | Team E",
+                    "🟤 | Team F"
+                ]
+
+                # 2. Calcul dynamique du nombre de salons selon les paliers exacts
+                if nombre_inscrit > 30:
+                    nombre_de_salons = 6
+                elif nombre_inscrit >= 20: 
+                    nombre_de_salons = 4
+                else:
+                    nombre_de_salons = 2
+
+                # 3. Récupération des rôles fixes (Inscrit Ranked & Modérateur Ranked)
+                role_inscrit_ranked = discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked")
+                role_modo = discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked")
+
+                # 4. Vérification de l'existence des rôles
+                if not role_inscrit_ranked:
+                    await interaction.followup.send("❌ **Erreur de configuration :** Le rôle `📝 | Inscrit Ranked` n'existe pas.", ephemeral=True)
+                    return
+            
+                if not role_modo:
+                    await interaction.followup.send("❌ **Erreur de configuration :** Le rôle `🤖 | Modérateur Ranked` n'existe pas.", ephemeral=True)
+                    return
+            
+                # 4. Vérification des rôles de Team requis pour le palier actuel
+                for index in range(nombre_de_salons):
+                    nom_du_role = config_roles_teams[index]
+                    role_verif = discord.utils.get(interaction.guild.roles, name=nom_du_role)
+                    
+                    if not role_verif:
+                        await interaction.followup.send(f"❌ **Erreur de configuration :** Le rôle `{nom_du_role}` est requis pour cette session mais il n'existe pas sur le serveur !", ephemeral=True)
+                        return
+
+                # 5. Boucle unique et dynamique pour créer les salons
                 # On créer un salon pour que les capitaines fassent le choix des équipes
                 choix_cap=await interaction.guild.create_voice_channel(name="『🎤』choix-des-teams",category=category,overwrites=overwrite_choix_teams)
                 #Ajout d'un status
                 await choix_cap.edit(status="📝 Choix des membres par les capitaines")
-                
-                # On créer les salons pour les deux équipes (Team A et Team B)
-                for index in range(2):
-                    if index==0:
-                        overwrite_teams_a_b={
-                                interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False), # Everyone ne voit pas le salon
-                                discord.utils.get(interaction.guild.roles, name="🔹 | Team A"): discord.PermissionOverwrite(read_messages=True,send_messages=True), # Team-A peut envoyer des messages dans le salon Team-A
-                                discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked"): discord.PermissionOverwrite(read_messages=True,send_messages=True,manage_messages=True) # Modérateur-ranked gère les messages
-                            }
-                    elif index==1:
-                        overwrite_teams_a_b={
-                                interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False), # Everyone ne voit pas le salon
-                                discord.utils.get(interaction.guild.roles, name="🔸 | Team B"): discord.PermissionOverwrite(read_messages=True,send_messages=True), # Team-B peut envoyer des messages dans le salon Team-B
-                                discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked"): discord.PermissionOverwrite(read_messages=True,send_messages=True,manage_messages=True) # Modérateur-ranked gère les messages
-                            }
-                    await interaction.guild.create_voice_channel(name=vocaux_teams[index],category=category)
-                    await interaction.guild.create_text_channel(name=textuel_teams[index],category=category,topic=f"Session du {nom_jour} {jour_num} {nom_mois}",overwrites=overwrite_teams_a_b)
+
+                # On créer les salons vocaux & textuel pour les différentes équipes
+                for index in range(nombre_de_salons):
+                    # On récupère les rôles nécessaires pour ce tour de boucle
+                    role_team_actuel = discord.utils.get(interaction.guild.roles, name=config_roles_teams[index])
+                    
+                    
+                    # On prépare les permissions génériques pour la team en cours
+                    overwrite_teams_X = {
+                        interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                        role_modo: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True),
+                        role_team_actuel: discord.PermissionOverwrite(read_messages=True, send_messages=True) # Direct, sans le "if"
+                    }
+                        
+                    # On prépare les permissions vocales (Ouvert à tous les inscrits)
+                    overwrite_vocaux = {
+                        interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False, connect=False), # Le reste du serveur ne voit pas
+                        role_modo: discord.PermissionOverwrite(view_channel=True, connect=True, mute_members=True),
+                        role_inscrit_ranked: discord.PermissionOverwrite(view_channel=True, connect=True) # Direct, sans le "if"
+                    }
+                        
+                    # 6. Création des salons Vocaux et Textuels
+                    await interaction.guild.create_voice_channel(
+                        name=vocaux_teams[index], 
+                        category=category,
+                        overwrites=overwrite_vocaux
+                    )
+                    
+                    await interaction.guild.create_text_channel(
+                        name=textuel_teams[index], 
+                        category=category, 
+                        topic=f"Session du {nom_jour} {jour_num} {nom_mois}", 
+                        overwrites=overwrite_teams_X  # Appliqué ici avec le nouveau nom
+                    )
             
             elif mode_jeux=="Solo":
                 await interaction.guild.create_voice_channel(name="『🗣️』FFA",category=category)
