@@ -103,7 +103,7 @@ class CreationRankedCog(commands.Cog):
 
     #-- Annoncer une Ranked --
     @app_commands.command(name="annonce-ranked",description="Annoncer une ranked")
-    async def annonce_ranked(self,interaction:discord.Interaction,id_message:int|None=None):
+    async def annonce_ranked(self,interaction:discord.Interaction):
         await interaction.response.send_modal(AnnonceRankedModal())
         if interaction.channel.name == "『🥇』inscription-ranked":
             try:
@@ -125,8 +125,8 @@ class CreationRankedCog(commands.Cog):
         
     
     #-- Création des salons en rapport avec les ranked (#team-A,#scores) --
-    @app_commands.command(name="start-ranked",description="Creer un channel")
-    async def start_ranked(self,interaction:discord.Interaction):
+    @app_commands.command(name="start-ranked",description="Creer les channels")
+    async def start_ranked(self,interaction:discord.Interaction,id_message:int|None=None):
 
         # On prévient que le bot peut mettre du temps a répondre
         await interaction.response.defer(ephemeral=True)
