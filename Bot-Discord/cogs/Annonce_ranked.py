@@ -238,6 +238,10 @@ class CreationRankedCog(commands.Cog):
             # On récupère les objets rôles correspondant aux rôles team A et team B
             role_teama=discord.utils.get(interaction.guild.roles, name="🔹 | Team A")
             role_teamb=discord.utils.get(interaction.guild.roles, name="🔸 | Team B")
+            role_teamc=discord.utils.get(interaction.guild.roles, name="🟢 | Team C")
+            role_teamd=discord.utils.get(interaction.guild.roles, name="🟡 | Team D")
+            role_teame=discord.utils.get(interaction.guild.roles, name="🟣 | Team E")
+            role_teamf=discord.utils.get(interaction.guild.roles, name="🟤 | Team F")
             # Si le rôle existe on enlève le rôle aux membres qui l'ont
             if role_teama:
                 for membre in role_teama.members:
@@ -248,6 +252,22 @@ class CreationRankedCog(commands.Cog):
                 for member in role_teamb.members:
                     await member.remove_roles(role_teamb, reason="Réinitialisation des équipes")
                 print(f"Rôle {role_teamb.name} retiré à tout le monde.", flush=True)
+            if role_teamc:
+                for member in role_teamc.members:
+                    await member.remove_roles(role_teamc, reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teamc.name} retiré à tout le monde.", flush=True)
+            if role_teamd:
+                for member in role_teamd.members:
+                    await member.remove_roles(role_teamd, reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teamd.name} retiré à tout le monde.", flush=True)
+            if role_teame:
+                for member in role_teame.members:
+                    await member.remove_roles(role_teame, reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teame.name} retiré à tout le monde.", flush=True)
+            if role_teamf:
+                for member in role_teamf.members:
+                    await member.remove_roles(role_teamf, reason="Réinitialisation des équipes")
+                print(f"Rôle {role_teamf.name} retiré à tout le monde.", flush=True)
 
             # Salons a supprimer (supprimer les salons renseignés uniquement)
             salons_deleted=[]
@@ -267,10 +287,24 @@ class CreationRankedCog(commands.Cog):
                 await channel.delete()
 
             # Permissions du salon scores
-            overwrite_scores={
+            # 1. On récupère proprement les rôles d'abord
+            role_inscrit_ranked = discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked")
+            role_modo = discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked")
+
+            # 2. Sécurité : Si un des rôles n'existe pas, on arrête tout avant de crash
+            if not role_inscrit_ranked:
+                await interaction.followup.send("❌ **Erreur :** Le rôle `📝 | Inscrit Ranked` est introuvable sur le serveur.", ephemeral=True)
+                return
+
+            if not role_modo:
+                await interaction.followup.send("❌ **Erreur :** Le rôle `🤖 | Modérateur Ranked` est introuvable sur le serveur.", ephemeral=True)
+                return
+
+            # 3. On crée le dictionnaire avec nos variables sécurisées
+            overwrite_scores = {
                 interaction.guild.default_role: discord.PermissionOverwrite(read_messages=False), # Everyone ne voit pas le salon
-                discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked"): discord.PermissionOverwrite(read_messages=True,send_messages=False), # Inscrit-ranked peut voir les messages
-                discord.utils.get(interaction.guild.roles, name="🤖 | Modérateur Ranked"): discord.PermissionOverwrite(read_messages=True,send_messages=True,manage_messages=True) # Modérateur-ranked peut modifier et envoyer des messages
+                role_inscrit_ranked: discord.PermissionOverwrite(read_messages=True, send_messages=False), # Inscrit-ranked voit mais n'écrit pas
+                role_modo: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True) # Modérateur gère tout
             }
 
             # Créations du salons annonce-ranked/scores avec les bonnes permissions
