@@ -190,7 +190,9 @@ class CreationRankedCog(commands.Cog):
             if not category:
                 await interaction.followup.send("La catégorie du salon 『🥇』inscription-ranked est introuvable.", ephemeral=True)
                 return
-
+            # Initialise les messages
+            messages = []
+            
             # Backup salon scores
             salon_score=discord.utils.get(category.text_channels, name="『📜』scores")
 
