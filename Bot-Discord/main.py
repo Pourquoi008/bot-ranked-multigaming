@@ -10,7 +10,7 @@ token=os.getenv('DISCORD_TOKEN')
 
 class Bot(commands.Bot):
     async def setup_hook(self):
-        for extension in ['Annonce_ranked','Reaction_role','Annonce_Stream']:
+        for extension in ['Annonce_ranked','Reaction_role','Annonce_stream']:
             await self.load_extension(f'cogs.{extension}')
 
 intents=discord.Intents.all()
