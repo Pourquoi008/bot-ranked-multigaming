@@ -8,7 +8,7 @@ app = Flask('')
 
 @app.route('/',methods=['GET','HEAD'])
 def home():
-    print("───> [PING] Requête de maintien reçue !")
+    print("───> [PING] Requête de maintien reçue !";flush=True)
     return "Le bot est en ligne !",200
 
 def run():
