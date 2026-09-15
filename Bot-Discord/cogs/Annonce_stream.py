@@ -5,6 +5,9 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 class AnnonceStreamCog(commands.Cog):
+    # Groupe principal /twitch
+    twitch_group = app_commands.Group(name="twitch", description="Gestion des alertes Twitch")
+
     def __init__(self, bot):
         self.bot = bot
         self.id_salon_annonce_stream = None
@@ -23,7 +26,6 @@ class AnnonceStreamCog(commands.Cog):
         self.verifier_streams.cancel()
 
     async def get_twitch_token(self, session: aiohttp.ClientSession):
-        """Récupère ou régénère un token OAuth valide via Client Credentials."""
         url = "https://id.twitch.tv/oauth2/token"
         params = {
             "client_id": self.twitch_client_id,
@@ -38,14 +40,12 @@ class AnnonceStreamCog(commands.Cog):
             print(f"⚠️ Erreur OAuth Twitch ({response.status}) : {await response.text()}")
             return None
 
-    # -- Boucle de vérification des streams --
     @tasks.loop(seconds=60)
     async def verifier_streams(self):
         if not self.liste_streamers or not self.id_salon_annonce_stream:
             return
 
         async with aiohttp.ClientSession() as session:
-            # Générer le token si absent
             if not self.access_token:
                 await self.get_twitch_token(session)
                 if not self.access_token:
@@ -61,20 +61,16 @@ class AnnonceStreamCog(commands.Cog):
                 params = {"user_login": username}
 
                 async with session.get(url, headers=headers, params=params) as response:
-                    # Si le token a expiré, on force son renouvellement au prochain cycle
                     if response.status == 401:
-                        print("Token Twitch expiré, renouvellement prévu...")
                         self.access_token = None
                         return
 
                     if response.status != 200:
-                        print(f"Erreur API Twitch ({response.status}) pour {username}")
                         continue
 
                     resultat = await response.json()
 
                 if "data" not in resultat:
-                    print(f"Format inattendu de l'API Twitch : {resultat}")
                     continue
 
                 est_en_live = bool(resultat["data"])
@@ -123,18 +119,34 @@ class AnnonceStreamCog(commands.Cog):
     async def attendre_bot(self):
         await self.bot.wait_until_ready()
 
-    # -- Ajout Streamers --
-    @app_commands.command(
-        name="add_streamers",
-        description="Ajouter un streamer à la liste des annonces"
-    )
-    async def add_streamer(self, interaction: discord.Interaction, twitch_username: str):
-        username = twitch_username.strip().lower()
+    # --- Commandes regroupées sous /twitch ---
 
+    @twitch_group.command(name="salon", description="Définir le salon où publier les annonces de live")
+    @app_commands.describe(salon="Le salon textuel cible")
+    async def config_salon(self, interaction: discord.Interaction, salon: discord.TextChannel):
+        self.id_salon_annonce_stream = salon.id
+        await interaction.response.send_message(
+            f"✅ Les annonces de live seront publiées dans {salon.mention}.",
+            ephemeral=True
+        )
+
+    @twitch_group.command(name="role", description="Définir le rôle à mentionner lors des lives")
+    @app_commands.describe(role="Le rôle à ping")
+    async def config_role(self, interaction: discord.Interaction, role: discord.Role):
+        self.id_role_annonce_stream = role.id
+        await interaction.response.send_message(
+            f"✅ Le rôle {role.mention} sera notifié.",
+            ephemeral=True
+        )
+
+    @twitch_group.command(name="ajouter", description="Ajouter une chaîne à surveiller")
+    @app_commands.describe(streamer="Le nom d'utilisateur Twitch (ex: aminematue)")
+    async def add_streamer(self, interaction: discord.Interaction, streamer: str):
+        username = streamer.strip().lower()
         if username not in self.liste_streamers:
             self.liste_streamers.append(username)
             await interaction.response.send_message(
-                f"✅ **{username}** a été ajouté aux alertes.",
+                f"✅ **{username}** a été ajouté aux streamers surveillés.",
                 ephemeral=True
             )
         else:
@@ -143,29 +155,14 @@ class AnnonceStreamCog(commands.Cog):
                 ephemeral=True
             )
 
-    # -- Config salon --
-    @app_commands.command(
-        name="config_salon",
-        description="Configurer le salon d'annonce"
-    )
-    async def config_salon(self, interaction: discord.Interaction, channel: discord.TextChannel):
-        self.id_salon_annonce_stream = channel.id
-        await interaction.response.send_message(
-            f"✅ Salon d'annonce défini sur {channel.mention}.",
-            ephemeral=True
-        )
+    @twitch_group.command(name="liste", description="Afficher la liste des chaînes surveillées")
+    async def list_streamers(self, interaction: discord.Interaction):
+        if not self.liste_streamers:
+            await interaction.response.send_message("Aucun streamer n'est actuellement surveillé.", ephemeral=True)
+            return
 
-    # -- Config rôle --
-    @app_commands.command(
-        name="config_role_annonce",
-        description="Choisir le rôle à mentionner pour les annonces"
-    )
-    async def config_role_annonce(self, interaction: discord.Interaction, role: discord.Role):
-        self.id_role_annonce_stream = role.id
-        await interaction.response.send_message(
-            f"✅ Le rôle {role.mention} sera mentionné dans les annonces.",
-            ephemeral=True
-        )
+        streamers = "\n".join(f"• `{s}`" for s in self.liste_streamers)
+        await interaction.response.send_message(f"**Chaînes surveillées :**\n{streamers}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(AnnonceStreamCog(bot))
