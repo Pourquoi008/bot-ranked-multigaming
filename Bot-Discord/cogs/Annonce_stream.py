@@ -142,7 +142,7 @@ class AnnonceStreamCog(commands.Cog):
                         embed = discord.Embed(
                             title=stream.get("title") or "En direct sur Twitch !",
                             url=stream_url,
-                            description=f"🔴 **{stream['user_name']}** vient de lancer un live !",
+                            description="",
                             color=discord.Color.from_rgb(145, 70, 255)  # Violet officiel Twitch
                         )
 
