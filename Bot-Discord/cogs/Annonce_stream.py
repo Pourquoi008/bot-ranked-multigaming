@@ -290,7 +290,6 @@ class AnnonceStreamCog(commands.Cog):
             await interaction.response.send_message(f"❌ **{username}** n'est pas dans la liste.", ephemeral=True)
 
     @twitch_group.command(name="liste", description="Voir la liste des streamers surveillés")
-    @twitch_group.command(name="liste", description="Voir la liste des streamers surveillés")
     async def list_streamers(self, interaction: discord.Interaction):
         # Chemins possibles
         chemin_cog = os.path.join(os.path.dirname(os.path.abspath(__file__)), "twitch_config.json")
