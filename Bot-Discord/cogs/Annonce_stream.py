@@ -209,7 +209,7 @@ class AnnonceStreamCog(commands.Cog):
                         embed.set_image(url=thumbnail_url)
                         embed.set_footer(
                             text="Twitch Alert",
-                            icon_url="https://static.twitchcdn.net/assets/favicon-32-eec4e62097d8eac56d9e.png"
+                            icon_url="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/twitch.png"
                         )
 
                         view = TwitchWatchButton(stream_url)
