@@ -291,36 +291,17 @@ class AnnonceStreamCog(commands.Cog):
 
     @twitch_group.command(name="liste", description="Voir la liste des streamers surveillés")
     async def list_streamers(self, interaction: discord.Interaction):
-        # Chemins possibles
-        chemin_cog = os.path.join(os.path.dirname(os.path.abspath(__file__)), "twitch_config.json")
-        chemin_racine = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "twitch_config.json")
-        
-        existe_cog = os.path.exists(chemin_cog)
-        existe_racine = os.path.exists(chemin_racine)
+        if not self.liste_streamers:
+            await interaction.response.send_message("Aucun streamer n'est actuellement surveillé.", ephemeral=True)
+            return
 
-        contenu_lu = "Non lu"
-        chemin_trouve = None
-
-        if existe_cog:
-            chemin_trouve = chemin_cog
-        elif existe_racine:
-            chemin_trouve = chemin_racine
-
-        if chemin_trouve:
-            try:
-                with open(chemin_trouve, "r", encoding="utf-8") as f:
-                    contenu_lu = f.read()
-            except Exception as e:
-                contenu_lu = f"Erreur lecture : {e}"
-
-        msg = (
-            f"📍 **Chemin cherché actuellement :** `{CONFIG_FILE}`\n"
-            f"📁 **Existe dans cogs/ ?** `{'Oui' if existe_cog else 'Non'}`\n"
-            f"📁 **Existe à la racine ?** `{'Oui' if existe_racine else 'Non'}`\n"
-            f"🧠 **En mémoire RAM :** `{self.liste_streamers}`\n\n"
-            f"📄 **Contenu brut du fichier trouvé :**\n```json\n{contenu_lu[:800]}\n```"
+        lignes = [f"• [{s}](https://twitch.tv/{s})" for s in self.liste_streamers]
+        embed = discord.Embed(
+            title="📺 Chaînes surveillées",
+            description="\n".join(lignes),
+            color=discord.Color.from_rgb(145, 70, 255)
         )
-        await interaction.response.send_message(msg, ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 async def setup(bot):
