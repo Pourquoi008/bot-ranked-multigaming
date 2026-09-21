@@ -6,9 +6,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
-# Chemin absolu basé sur le dossier racine du bot (évite les erreurs de dossier courant sur Render)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "twitch_config.json")
+# Chemin vers config.json à la racine du projet
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 
 
 class TwitchWatchButton(discord.ui.View):
@@ -52,31 +52,41 @@ class AnnonceStreamCog(commands.Cog):
     def cog_unload(self):
         self.verifier_streams.cancel()
 
-    # -- Persistance JSON --
+    # -- Persistance JSON partagée --
 
     def charger_config(self):
-        """Lit la configuration depuis twitch_config.json s'il existe."""
+        """Lit la section 'twitch' depuis config.json sans toucher aux autres clés."""
         if os.path.exists(CONFIG_FILE):
             try:
                 with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.id_salon_annonce_stream = data.get("salon_id")
-                    self.id_role_annonce_stream = data.get("role_id")
-                    self.liste_streamers = data.get("streamers", [])
+                    twitch_data = data.get("twitch", {})
+                    self.id_salon_annonce_stream = twitch_data.get("salon_id")
+                    self.id_role_annonce_stream = twitch_data.get("role_id")
+                    self.liste_streamers = twitch_data.get("streamers", [])
                 print(f"Config Twitch chargée : {len(self.liste_streamers)} streamer(s) en mémoire.")
             except Exception as e:
                 print(f"⚠️ Erreur lors de la lecture de {CONFIG_FILE} : {e}")
         else:
-            print("Aucun fichier de configuration trouvé, création d'une config par défaut.")
+            print("Aucun fichier config.json trouvé, création d'un fichier par défaut.")
             self.sauvegarder_config()
 
     def sauvegarder_config(self):
-        """Écrit l'état actuel dans twitch_config.json."""
-        data = {
+        """Met à jour uniquement la clé 'twitch' dans config.json pour préserver 'ranked'."""
+        data = {}
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            except Exception:
+                data = {}
+
+        data["twitch"] = {
             "salon_id": self.id_salon_annonce_stream,
             "role_id": self.id_role_annonce_stream,
             "streamers": self.liste_streamers
         }
+
         try:
             with open(CONFIG_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
