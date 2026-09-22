@@ -58,23 +58,10 @@ Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automa
 
 * **Python 3.11+**
 * **discord.py 2.x** (Cogs, App Commands, UI Views & Modals, Tasks)
-* **aiohttp** (Requêtes asynchrones pour l'API Twitch)
+* **aiohttp** (Requêtes asynchrones pour l'API Twitch Helix)
 
 ---
 
-## ⚙️ Configuration requise
+## 🔒 Projet personnel
 
-Le bot s'appuie sur des variables d'environnement pour ses accès sécurisés :
-
-* `DISCORD_TOKEN` : Token du bot Discord.
-* `TWITCH_CLIENT_ID` : Identifiant client de l'application Twitch Developer.
-* `TWITCH_CLIENT_SECRET` : Clé secrète de l'application Twitch Developer.
-
----
-
-## 🚀 Installation
-
-1. **Cloner le dépôt :**
-   ```bash
-   git clone [https://github.com/ton-profil/ton-repo.git](https://github.com/ton-profil/ton-repo.git)
-   cd ton-repo
+Ce bot a été développé pour répondre aux besoins spécifiques d'un serveur communautaire privé. Le dépôt est partagé à des fins de démonstration technique et de suivi de version ; aucun support à l'installation ou au déploiement externe n'est assuré.
