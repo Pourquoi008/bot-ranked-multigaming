@@ -10,7 +10,7 @@ Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automa
 
 #### 📅 Création & Annonce de session (`/annonce-ranked`)
 * **Modal de saisie sécurisé :** accessible uniquement depuis le salon `『🥇』inscription-ranked`. Saisie de la date (`JJ/MM`), de l'heure (`0-23`), du mode de jeu et de la liste des jeux.
-* **Réinitialisation automatique :** purge des derniers messages en raport avec un précédent match et retrait automatique du rôle `📝 | Inscrit Ranked` à tous les membres.
+* **Réinitialisation automatique :** purge des derniers messages en raport avec une annonce d'un précédent match et retrait automatique du rôle `📝 | Inscrit Ranked` à tous les membres.
 * **Publication formatée :** affichage dynamique de la date en français, mise en page des jeux, mention automatique du rôle `🏆 | MG Ranked` et ajout instantané des 3 réactions de statut :
   * ✅ : Obtention du rôle `📝 | Inscrit Ranked`.
   * ❔ : Obtention du rôle `⏳ | En Attente Ranked` .
