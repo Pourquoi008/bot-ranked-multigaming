@@ -1,6 +1,6 @@
 # 🤖 Bot Discord — Ranked & Twitch Alert
 
-Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automatise la gestion d'événements compétitifs (inscriptions, attribution dynamique des rôles, création des salons et archivage des scores) et assure une veille automatique des streams Twitch.
+Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automatise la gestion d'événements compétitifs (inscriptions, attribution dynamique des rôles, création des salons et archivage des scores) et assure une notifications automatique des streams Twitch de streameurs selectionnés.
 
 ---
 
