@@ -57,8 +57,11 @@ Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automa
 ## 🛠️ Stack technique
 
 * **Python 3.11+**
-* **discord.py 2.x** (Cogs, App Commands, UI Views & Modals, Tasks)
-* **aiohttp** (Requêtes asynchrones pour l'API Twitch Helix)
+* **discord.py 2.6+** — Gestion du bot, interactions (Modals, Cogs, Views) et tâches de fond (`tasks.loop`)
+* **aiohttp** — Requêtes HTTP asynchrones pour l'API Twitch Helix
+* **Flask** — Serveur web minimal pour le monitoring et maintien en activité (Keep-Alive)
+* **asyncpg** — Client asynchrone PostgreSQL
+* **python-dotenv** — Chargement des variables d'environnement
 
 ---
 
