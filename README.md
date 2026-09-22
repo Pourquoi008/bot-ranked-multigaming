@@ -1,59 +1,79 @@
 # 🤖 Bot Discord — Ranked & Twitch Alert
 
-Bot Discord multifonction développé avec **Python (discord.py)**, conçu pour l'organisation automatisée d'événements ranked (matchs compétitifs, gestion des rôles et des salons vocaux) ainsi que pour la surveillance et l'annonce de streams Twitch en direct.
+Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automatise la gestion d'événements compétitifs (inscriptions, attribution dynamique des rôles, création des salons et archivage des scores) et assure une veille automatique des streams Twitch.
 
 ---
 
-## ⚡ Fonctionnalités principales
+## ⚡ Fonctionnalités détaillées
 
-### 🏆 1. Organisation de matchs ranked
-Un système complet pour planifier, inscrire et répartir automatiquement les joueurs lors des sessions ranked.
+### 🏆 1. Système de Ranked
 
-* **Création via modal dédié :**
-  * Accessible uniquement aux membres ayant le rôle **Modérateur Ranked**.
-  * Saisie guidée des informations : date, heure, mode de jeu (équipe, duo, trio, 2v2, etc.) et jeux sélectionnés.
-* **Annonce automatique & inscriptions :**
-  * Publication d'un message stylisé dans le salon dédié.
-  * Ajout automatique de 3 réactions pour gérer les statuts des joueurs :
-    * ✅ : Obtention du rôle **Inscrit Ranked**.
-    * ❓ : Obtention du rôle **Attente Ranked**.
-    * ❌ : Désinscription / refus.
-* **Génération dynamique des salons vocaux :**
-  * Création des salons vocaux adaptée au format et au nombre de participants :
-    * Format équipe : `Team A`, `Team B`, etc.
-    * Format petits groupes : `Duo #1`, `Trio #1`, `Trio #2`, etc.
-* **Archivage et gestion du salon des scores :**
-  * Sauvegarde automatique des scores précédents : extraction des messages postés par les modérateurs et export au format `.txt` dans un salon d'archive/backup.
-  * Suppression de l'ancien salon des scores et création d'un salon propre pour la session en cours.
+#### 📅 Création & Annonce de session (`/annonce-ranked`)
+* **Modal de saisie sécurisé :** accessible uniquement depuis le salon `『🥇』inscription-ranked`. Saisie de la date (`JJ/MM`), de l'heure (`0-23`), du mode de jeu et de la liste des jeux.
+* **Réinitialisation automatique :** purge des derniers messages du salon et retrait automatique du rôle `📝 | Inscrit Ranked` à tous les membres.
+* **Publication formatée :** affichage dynamique de la date en français, mise en page des jeux (`> Jeu`), mention automatique du rôle `🏆 | MG Ranked` et ajout instantané des 3 réactions de statut :
+  * ✅ : Obtention du rôle `📝 | Inscrit Ranked` (retire le rôle d'attente).
+  * ❔ : Obtention du rôle `⏳ | En Attente Ranked` (retire le rôle inscrit).
+  * ❌ : Désistement (retire les rôles d'inscriptions et nettoie les autres réactions).
+* **Retrait réactif :** la suppression d'une réaction retire immédiatement le rôle associé au membre.
+
+#### 👥 Consultation des inscriptions (`/liste_inscrits`)
+* Commande permettant d'extraire et d'afficher sous forme d'embed les **12 premiers inscrits** par ordre chronologique d'arrivée sur une réaction donnée (en filtrant les bots).
+
+#### 🚀 Lancement & Déploiement des salons (`/start-ranked`)
+* **Nettoyage & Archivage :**
+  * Extraction des messages du salon `『📜』scores` avec horodatage converti sur le fuseau horaire de Paris.
+  * Génération à la volée d'un fichier texte compressé en mémoire (`Backup_Scores_JJ_MM.txt`) posté automatiquement dans `『🔍』logs-scores`.
+  * Suppression des anciens salons de match et réinitialisation des rôles d'équipes (`Team A` à `Team F`).
+* **Création des nouveaux salons selon le mode :**
+  * **Teams :** 
+    * Calcul automatique du nombre d'équipes selon l'affluence (2 équipes par défaut, 4 équipes dès 20 inscrits, 6 équipes au-delà de 30 inscrits).
+    * Création du vocal `『🎤』choix-des-teams` avec statut vocal personnalisé pour les capitaines.
+    * Création des salons vocaux et textuels privés pour chaque team avec gestion fine des permissions.
+  * **Solo :** Création des salons `『🗣️』FFA` (vocal) et `『👤』ffa` (textuel privé).
+  * **Duo / Trio / Quatuor :** Création dynamique du nombre exact de salons vocaux requis avec limitation stricte d'utilisateurs (`user_limit`).
 
 ---
 
-### 📺 2. Annonces de streams Twitch
-Système de détection automatique pour avertir la communauté dès qu'un streamer passe en direct.
+### 📺 2. Annonces Twitch Helix
 
-* **Configuration personnalisable :**
-  * Définition du salon d'annonce et du rôle à mentionner.
-  * Ajout, suppression et consultation de la liste des chaînes Twitch surveillées.
+* **Boucle de surveillance (toutes les 60s) :**
+  * Vérification automatique de l'état des streamers via l'API Twitch Helix avec renouvellement transparent du token OAuth en cas d'expiration (401).
 * **Alertes en direct :**
-  * Publication d'un embed détaillé (miniature, avatar, jeu en cours, nombre de viewers).
-  * Bouton interactif intégré permettant de rejoindre directement le stream sur Twitch.
+  * Envoi d'un embed complet : jeu en cours, nombre de spectateurs en direct, avatar du streamer et miniature du stream en haute définition (1280x720).
+  * Bouton interactif direct (`discord.ui.View`) redirigeant vers la chaîne.
+  * Mention paramétrable d'un rôle Discord dédié.
+* **Gestion via commandes Slash (`/twitch`) :**
+  * `/twitch salon` : Définit le salon de diffusion des alertes.
+  * `/twitch role` : Configure le rôle à mentionner.
+  * `/twitch ajouter` : Ajoute un streamer (supporte les URLs ou les pseudos simples).
+  * `/twitch retirer` : Retire un streamer de la surveillance.
+  * `/twitch liste` : Affiche sous forme d'embed l'ensemble des chaînes surveillées.
+  * **Persistance :** Sauvegarde automatique des paramètres au format JSON.
 
 ---
 
 ## 🛠️ Stack technique
 
-* **Langage :** Python 3.11+
-* **Librairie :** [discord.py](https://github.com/Rapptz/discord.py)
-* **APIs tierces :** API Twitch Helix
-* **Persistance :** Fichiers JSON locaux
+* **Python 3.11+**
+* **discord.py 2.x** (Cogs, App Commands, UI Views & Modals, Tasks)
+* **aiohttp** (Requêtes asynchrones pour l'API Twitch)
 
 ---
 
-## ⚙️ Variables d'environnement
+## ⚙️ Configuration requise
 
-Crée un fichier `.env` à la racine du projet avec les clés suivantes :
+Le bot s'appuie sur des variables d'environnement pour ses accès sécurisés :
 
-```env
-DISCORD_TOKEN=ton_token_discord
-TWITCH_CLIENT_ID=ton_client_id_twitch
-TWITCH_CLIENT_SECRET=ton_client_secret_twitch
+* `DISCORD_TOKEN` : Token du bot Discord.
+* `TWITCH_CLIENT_ID` : Identifiant client de l'application Twitch Developer.
+* `TWITCH_CLIENT_SECRET` : Clé secrète de l'application Twitch Developer.
+
+---
+
+## 🚀 Installation
+
+1. **Cloner le dépôt :**
+   ```bash
+   git clone [https://github.com/ton-profil/ton-repo.git](https://github.com/ton-profil/ton-repo.git)
+   cd ton-repo
