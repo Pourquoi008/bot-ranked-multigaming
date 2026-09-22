@@ -1,5 +1,6 @@
 from code import interact
 import io
+import math
 from sqlite3.dbapi2 import Timestamp
 import string
 import discord
@@ -313,8 +314,8 @@ class CreationRankedCog(commands.Cog):
         
 
             # Création des salons (dépend du mode de jeux)
-            vocaux_teams=["『🔵』TEAM A","『🔴』TEAM B"]
-            textuel_teams=["『🟦』team-a","『🟥』team-b"]
+            vocaux_teams=["『🔵』TEAM A","『🔴』TEAM B","『🟢』TEAM C","『🟡』TEAM D","『🟣』TEAM E","『🟤』TEAM F"]
+            textuel_teams=["『🟦』team-a","『🟥』team-b","『🟩』team-c","『🟨』team-d","『🟪』team-e","『🟫』team-f"]
             overwrite_choix_teams = {
                     interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False, connect=False),
                     discord.utils.get(interaction.guild.roles, name="📝 | Inscrit Ranked"): discord.PermissionOverwrite(view_channel=True, connect=True,speak=True),
@@ -413,7 +414,7 @@ class CreationRankedCog(commands.Cog):
                 await interaction.guild.create_text_channel(name="『👤』ffa",category=category,topic=f"Session du {nom_jour} {jour_num} {nom_mois}",overwrites=overwrite_team_solo)
             elif mode_jeux=="Duo":
                 # On crée autant de salon vocaux duo qu'il n'y d'inscrit divisé par 2 (en prenant en compte que le nombre peut être impair)
-                for i in range((nombre_inscrit//2)+1):
+                for i in range(math.ceil(nombre_inscrit / 2)):
                     await interaction.guild.create_voice_channel(name=f"『👥』DUO #{i+1}",category=category,user_limit=2)
             elif mode_jeux=="Trio":
                 # Idem pour le mode Trio

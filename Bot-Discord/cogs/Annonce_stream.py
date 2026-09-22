@@ -241,6 +241,7 @@ class AnnonceStreamCog(commands.Cog):
     # -- Commandes Slash sous /twitch --
 
     @twitch_group.command(name="salon", description="Définir le salon d'annonce pour les lives")
+    @app_commands.checks.has_role("👤 | Staff")
     @app_commands.describe(salon="Le salon textuel où envoyer les alertes")
     async def config_salon(self, interaction: discord.Interaction, salon: discord.TextChannel):
         self.id_salon_annonce_stream = salon.id
@@ -251,6 +252,7 @@ class AnnonceStreamCog(commands.Cog):
         )
 
     @twitch_group.command(name="role", description="Définir le rôle mentionné lors des lives")
+    @app_commands.checks.has_role("👤 | Staff")
     @app_commands.describe(role="Le rôle à notifier")
     async def config_role(self, interaction: discord.Interaction, role: discord.Role):
         self.id_role_annonce_stream = role.id
@@ -261,9 +263,9 @@ class AnnonceStreamCog(commands.Cog):
         )
 
     @twitch_group.command(name="ajouter", description="Ajouter une chaîne à surveiller (lien ou pseudo)")
+    @app_commands.checks.has_role("👤 | Staff")
     @app_commands.describe(chaine="Lien Twitch (ex: twitch.tv/streamer) ou pseudo direct")
     async def add_streamer(self, interaction: discord.Interaction, chaine: str):
-        username = self.extraire_pseudo_twitch(chaine)
 
         if not username:
             await interaction.response.send_message(
@@ -286,6 +288,7 @@ class AnnonceStreamCog(commands.Cog):
             )
 
     @twitch_group.command(name="retirer", description="Retirer une chaîne de la liste de surveillance")
+    @app_commands.checks.has_role("👤 | Staff")
     @app_commands.describe(chaine="Lien Twitch ou pseudo à retirer")
     async def remove_streamer(self, interaction: discord.Interaction, chaine: str):
         username = self.extraire_pseudo_twitch(chaine)
