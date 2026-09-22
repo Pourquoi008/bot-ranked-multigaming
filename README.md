@@ -31,7 +31,8 @@ Bot Discord multifonctionnel développé avec **Python (discord.py)**. Il automa
     * Création du vocal `『🎤』choix-des-teams` avec statut vocal personnalisé pour les capitaines.
     * Création des salons vocaux et textuels privés pour chaque team avec gestion fine des permissions.
   * **Solo :** Création des salons `『🗣️』FFA` (vocal) et `『👤』ffa` (textuel privé).
-  * **Duo / Trio / Quatuor :** Création dynamique du nombre exact de salons vocaux requis avec limitation stricte d'utilisateurs (`user_limit`).
+  * **Duo / Trio / Quatuor :** Création dynamique du nombre exact de salons vocaux requis avec limitation stricte d'utilisateurs (`user_limit`)
+  Ex : `『👥』Duo #1 (0/2)` (membres connectés au salon).
 
 ---
 
