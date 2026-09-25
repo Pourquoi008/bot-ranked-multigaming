@@ -155,11 +155,11 @@ class Ranked1V1(commands.Cog):
             await interaction.response.send_message("L'Elo ne peut pas être négatif.", ephemeral=True)
             return
 
-        await self.bot.db.set_player_elo(joueur.id, valeur, joueur.name)
-        new_rank = get_rank_display(valeur, 3)
+        new_score, matches = await self.bot.db.set_player_elo(joueur.id, valeur, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
 
         await interaction.response.send_message(
-            f"✏️ L'Elo de {joueur.mention} a été défini à **{valeur}** (Rang : **{new_rank}**)."
+            f"✏️ L'Elo de {joueur.mention} a été défini à **{new_score}** (Rang : **{new_rank}**)."
         )
 
     @admin_group.command(name="add", description="Ajoute des points d'Elo à un joueur")
@@ -169,8 +169,8 @@ class Ranked1V1(commands.Cog):
             await interaction.response.send_message("Le montant doit être supérieur à 0.", ephemeral=True)
             return
 
-        new_score = await self.bot.db.adjust_player_elo(joueur.id, montant, joueur.name)
-        new_rank = get_rank_display(new_score, 3)
+        new_score, matches = await self.bot.db.adjust_player_elo(joueur.id, montant, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
 
         await interaction.response.send_message(
             f"🔼 **+{montant}** Elo accordés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
@@ -183,8 +183,8 @@ class Ranked1V1(commands.Cog):
             await interaction.response.send_message("Le montant doit être supérieur à 0.", ephemeral=True)
             return
 
-        new_score = await self.bot.db.adjust_player_elo(joueur.id, -montant, joueur.name)
-        new_rank = get_rank_display(new_score, 3)
+        new_score, matches = await self.bot.db.adjust_player_elo(joueur.id, -montant, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
 
         await interaction.response.send_message(
             f"🔻 **-{montant}** Elo retirés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
