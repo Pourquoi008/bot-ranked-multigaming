@@ -1,6 +1,7 @@
 import json
 import os
 import discord
+from pathlib import Path
 from discord import app_commands
 from discord.ext import commands
 from database import PLACEMENT_MATCHES_REQUIRED, get_rank_display
