@@ -5,9 +5,8 @@ from discord import app_commands
 from discord.ext import commands
 from database import PLACEMENT_MATCHES_REQUIRED, get_rank_display
 
-# Chemin vers config.json à la racine du bot
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+# Chemin vers config.json
+CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
 
 
 def get_ranked_config() -> dict:
