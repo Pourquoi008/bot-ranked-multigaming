@@ -80,3 +80,39 @@ class Database:
                 FROM players 
                 ORDER BY (matches_played >= 3) DESC, elo DESC
             """)
+
+    ## Modification elo
+    async def set_player_elo(self, user_id: int, elo: int, username: str | None = None):
+        """Définit directement l'Elo d'un joueur en base de données."""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT 1 FROM players WHERE user_id = $1", user_id)
+            if row:
+                if username:
+                    await conn.execute("UPDATE players SET elo = $1, username = $2 WHERE user_id = $3", elo, username, user_id)
+                else:
+                    await conn.execute("UPDATE players SET elo = $1 WHERE user_id = $2", elo, user_id)
+            else:
+                # Si le joueur n'a encore jamais joué, on l'initialise avec 3 matchs pour valider son placement
+                await conn.execute(
+                    "INSERT INTO players (user_id, username, elo, matches_played) VALUES ($1, $2, $3, 3)",
+                    user_id, username, elo
+                )
+
+    async def adjust_player_elo(self, user_id: int, delta: int, username: str | None = None) -> int:
+        """Ajoute (delta > 0) ou retire (delta < 0) des points d'Elo et renvoie le nouveau score."""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT elo FROM players WHERE user_id = $1", user_id)
+            if row:
+                new_elo = max(0, row["elo"] + delta)
+                if username:
+                    await conn.execute("UPDATE players SET elo = $1, username = $2 WHERE user_id = $3", new_elo, username, user_id)
+                else:
+                    await conn.execute("UPDATE players SET elo = $1 WHERE user_id = $2", new_elo, user_id)
+                return new_elo
+            else:
+                new_elo = max(0, 1200 + delta)
+                await conn.execute(
+                    "INSERT INTO players (user_id, username, elo, matches_played) VALUES ($1, $2, $3, 3)",
+                    user_id, username, new_elo
+                )
+                return new_elo
