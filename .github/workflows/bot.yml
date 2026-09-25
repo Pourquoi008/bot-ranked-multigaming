@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     
-    # 1. On indique à GitHub d'utiliser l'environnement où se trouvent tes jetons
     environment: TOKEN 
 
     steps:
@@ -29,10 +28,10 @@ jobs:
 
       - name: Lancer le Bot Discord
         env:
-          # 2. On lie les variables avec les VRAIS noms de ta capture d'écran
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }
         run: |
           cd Bot-Discord
           python main.py  # Remplace par ton fichier principal si besoin
