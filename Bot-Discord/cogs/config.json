@@ -6,6 +6,7 @@
   },
   "ranked": {
     "matchmaking_channel_id": null,
-    "match_category_id": null
+    "match_category_id": null,
+    "referee_role_id": null
   }
 }

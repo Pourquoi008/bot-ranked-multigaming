@@ -51,7 +51,7 @@ class Ranked1V1(commands.Cog):
     # Groupes de commandes d'administration
     setup_group = app_commands.Group(
         name="setup_ranked",
-        description="Configuration des salons de match 1v1",
+        description="Configuration du système de ranked 1v1",
         default_permissions=discord.Permissions(administrator=True)
     )
     admin_group = app_commands.Group(
@@ -104,6 +104,15 @@ class Ranked1V1(commands.Cog):
     # CONFIGURATION DES SALONS (config.json)
     # ==========================================
 
+    @setup_group.command(name="arbitre", description="Définit le rôle autorisé à arbitrer et valider les matchs")
+    @app_commands.describe(role="Le rôle Discord à désigner comme arbitre")
+    async def set_arbitre(self, interaction: discord.Interaction, role: discord.Role):
+        update_ranked_config("referee_role_id", role.id)
+        await interaction.response.send_message(
+            f"✅ Le rôle {role.mention} a été défini comme rôle d'arbitrage officiel.",
+            ephemeral=True
+        )
+
     @setup_group.command(name="channel", description="Définit le salon où les joueurs recherchent des matchs")
     @app_commands.describe(salon="Le salon textuel réservé à la recherche")
     async def set_channel(self, interaction: discord.Interaction, salon: discord.TextChannel):
@@ -122,23 +131,18 @@ class Ranked1V1(commands.Cog):
             ephemeral=True
         )
 
-    @setup_group.command(name="view", description="Affiche la configuration actuelle des salons")
+    @setup_group.command(name="view", description="Affiche la configuration actuelle des salons et rôles")
     async def view_config(self, interaction: discord.Interaction):
         cfg = get_ranked_config()
         ch_id = cfg.get("matchmaking_channel_id")
         cat_id = cfg.get("match_category_id")
+        ref_id = cfg.get("referee_role_id")
 
-        embed = discord.Embed(title="⚙️ Configuration Ranked", color=discord.Color.blue())
-        embed.add_field(
-            name="Salon de recherche",
-            value=f"<#{ch_id}>" if ch_id else "❌ Non configuré",
-            inline=False
-        )
-        embed.add_field(
-            name="Catégorie des matchs",
-            value=f"<#{cat_id}>" if cat_id else "❌ Non configurée",
-            inline=False
-        )
+        embed = discord.Embed(title="⚙️ Configuration Ranked Actuelle", color=discord.Color.blue())
+        embed.add_field(name="Salon de recherche", value=f"<#{ch_id}>" if ch_id else "❌ Non configuré", inline=False)
+        embed.add_field(name="Catégorie des matchs", value=f"<#{cat_id}>" if cat_id else "❌ Non configurée", inline=False)
+        embed.add_field(name="Rôle arbitre", value=f"<@&{ref_id}>" if ref_id else "❌ Non configuré", inline=False)
+
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     # ==========================================
