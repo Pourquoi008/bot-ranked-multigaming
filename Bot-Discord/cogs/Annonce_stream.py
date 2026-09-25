@@ -6,9 +6,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
-# Chemin vers config.json à la racine du projet
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+# Chemin vers config.json
+CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
 
 
 class TwitchWatchButton(discord.ui.View):
