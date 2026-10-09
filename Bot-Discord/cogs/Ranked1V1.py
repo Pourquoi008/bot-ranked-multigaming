@@ -116,6 +116,7 @@ def update_ranked_config(key: str, value: int):
 class Ranked1V1(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.queue: list[int] = []
 
     # Groupes de commandes d'administration
     setup_group = app_commands.Group(
