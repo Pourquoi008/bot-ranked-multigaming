@@ -156,18 +156,19 @@ class MatchmakingView(discord.ui.View):
             await interaction.response.send_message("Tu n'es pas dans la file d'attente.", ephemeral=True)
 
 class MatchControlView(discord.ui.View):
-    """Gère les actions rapides de fin de partie : Abandon et Match Nul mutuel."""
+    """Gère l'annulation à l'amiable et le forfait dans le salon temporaire."""
 
     def __init__(self, cog, p1: discord.Member, p2: discord.Member):
         super().__init__(timeout=None)
         self.cog = cog
         self.p1 = p1
         self.p2 = p2
-        self.draw_votes: set[int] = set()
+        self.cancel_votes: set[int] = set()
+        self.forfeit_votes: set[int] = set()
         self.match_ended = False
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        """Restreint l'usage des boutons aux deux participants du match."""
+        """Restreint l'usage aux deux duellistes."""
         if interaction.user.id not in (self.p1.id, self.p2.id):
             await interaction.response.send_message(
                 "❌ Seuls les deux duellistes peuvent utiliser ces boutons.",
@@ -176,54 +177,66 @@ class MatchControlView(discord.ui.View):
             return False
         if self.match_ended:
             await interaction.response.send_message(
-                "⚠️ Ce match est déjà clôturé.",
+                "⚠️ Ce match est déjà terminé ou annulé.",
                 ephemeral=True
             )
             return False
         return True
 
+    # --- Bouton : Annuler le match (aucun impact d'Elo) ---
     @discord.ui.button(
-        label="Demander match nul (0/2)",
+        label="Annuler le match (0/2)",
         style=discord.ButtonStyle.secondary,
-        emoji="🤝",
-        custom_id="match_action_draw"
+        emoji="🛑",
+        custom_id="match_action_cancel"
     )
-    async def request_draw(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def request_cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = interaction.user.id
 
-        if user_id in self.draw_votes:
-            self.draw_votes.remove(user_id)
-            button.label = f"Demander match nul ({len(self.draw_votes)}/2)"
+        if user_id in self.cancel_votes:
+            self.cancel_votes.remove(user_id)
+            button.label = f"Annuler le match ({len(self.cancel_votes)}/2)"
             await interaction.response.edit_message(view=self)
             await interaction.followup.send(
-                f"↩️ {interaction.user.mention} a annulé sa proposition de match nul.",
+                f"↩️ {interaction.user.mention} a retiré sa demande d'annulation.",
                 ephemeral=False
             )
             return
 
-        self.draw_votes.add(user_id)
-        button.label = f"Demander match nul ({len(self.draw_votes)}/2)"
+        self.cancel_votes.add(user_id)
+        button.label = f"Annuler le match ({len(self.cancel_votes)}/2)"
 
-        if len(self.draw_votes) == 2:
+        if len(self.cancel_votes) == 2:
             self.match_ended = True
             for child in self.children:
                 child.disabled = True
             await interaction.response.edit_message(view=self)
 
             embed = discord.Embed(
-                title="🤝 Match Nul Accepté",
-                description="Les deux duellistes se sont mis d'accord pour un match nul.\nLe salon sera fermé dans quelques instants.",
+                title="🛑 Match Annulé",
+                description=(
+                    "Les deux joueurs ont accepté d'annuler la partie.\n"
+                    "• **Aucun Elo** n'a été modifié.\n"
+                    "• Ce match ne compte pas dans l'historique.\n\n"
+                    "Ce salon sera supprimé automatiquement dans **10 secondes**."
+                ),
                 color=discord.Color.light_grey()
             )
             await interaction.followup.send(embed=embed)
+            
+            # Suppression automatique après 10s
+            import asyncio
+            await asyncio.sleep(10)
+            await interaction.channel.delete(reason="Match annulé par consentement mutuel")
         else:
             await interaction.response.edit_message(view=self)
             other = self.p2 if user_id == self.p1.id else self.p1
             await interaction.followup.send(
-                f"🤝 {interaction.user.mention} propose un **match nul**. {other.mention}, clique sur le bouton pour accepter.",
+                f"🛑 {interaction.user.mention} souhaite **annuler le match** (sans perte d'Elo). {other.mention}, clique sur le bouton pour confirmer.",
                 ephemeral=False
             )
 
+    # --- Bouton : Déclarer forfait / Abandonner ---
     @discord.ui.button(
         label="Déclarer forfait",
         style=discord.ButtonStyle.danger,
@@ -231,20 +244,34 @@ class MatchControlView(discord.ui.View):
         custom_id="match_action_forfeit"
     )
     async def forfeit(self, interaction: discord.Interaction, button: discord.ui.Button):
+        loser = interaction.user
+        winner = self.p2 if loser.id == self.p1.id else self.p1
+
+        # Vérification si l'utilisateur re-clique pour confirmer son propre abandon
+        if loser.id not in self.forfeit_votes:
+            self.forfeit_votes.add(loser.id)
+            await interaction.response.send_message(
+                "⚠️ Tu as cliqué sur **Déclarer forfait**. Clique une seconde fois sur le bouton pour confirmer définitivement ton abandon.",
+                ephemeral=True
+            )
+            return
+
+        # Si confirmé une 2e fois
         self.match_ended = True
         for child in self.children:
             child.disabled = True
         await interaction.response.edit_message(view=self)
 
-        loser = interaction.user
-        winner = self.p2 if loser.id == self.p1.id else self.p1
-
         embed = discord.Embed(
-            title="🏳️ Victoire par Abandon",
-            description=f"{loser.mention} a déclaré forfait.\n🏆 Victoire accordée à {winner.mention} !",
+            title="🏳️ Victoire par Forfait",
+            description=(
+                f"{loser.mention} a déclaré forfait !\n"
+                f"🏆 Victoire attribuée à {winner.mention}.\n\n"
+                "Un arbitre ou la commande de résultat appliquera l'ajustement d'Elo."
+            ),
             color=discord.Color.red()
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 # ==============================================================================
 # COG PRINCIPAL : RANKED 1V1
