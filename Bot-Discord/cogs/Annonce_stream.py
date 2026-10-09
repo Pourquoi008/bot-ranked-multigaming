@@ -51,9 +51,29 @@ class AnnonceStreamCog(commands.Cog):
 
     def cog_unload(self):
         self.verifier_streams.cancel()
+    # -- Prédicat Personnalisé pour vérifier le rôle Staff --
+    def is_twitch_staff():
+        """Vérifie si l'utilisateur possède le rôle staff configuré ou est administrateur."""
+        async def predicate(interaction: discord.Interaction) -> bool:
+            # Les administrateurs du serveur ont toujours accès
+            if interaction.user.guild_permissions.administrator:
+                return True
+
+            cog = interaction.client.get_cog("AnnonceStreamCog")
+            staff_role_id = getattr(cog, "staff_role_id", None)
+
+            if not staff_role_id:
+                raise app_commands.AppCommandError("❌ Aucun rôle Staff n'a été configuré. Un administrateur doit faire `/twitch set_role_staff`.")
+
+            role = interaction.guild.get_role(staff_role_id)
+            if role and role in interaction.user.roles:
+                return True
+
+            raise app_commands.AppCommandError(f"❌ Tu dois posséder le rôle {role.mention if role else 'Staff'} pour utiliser cette commande.")
+
+        return app_commands.check(predicate)
 
     # -- Persistance JSON partagée --
-
     def charger_config(self):
         """Lit la section 'twitch' depuis config.json sans toucher aux autres clés."""
         if os.path.exists(CONFIG_FILE):
@@ -240,8 +260,22 @@ class AnnonceStreamCog(commands.Cog):
 
     # -- Commandes Slash sous /twitch --
 
+    # -- Définir le rôle staff
+    @twitch_group.command(name="set_role_staff", description="Définit le rôle autorisé à gérer les annonces Twitch")
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.describe(role="Le rôle Discord autorisé")
+    async def set_role_staff(self, interaction: discord.Interaction, role: discord.Role):
+        # Sauvegarde de l'ID du rôle dans config.json sous la section "twitch"
+        self.staff_role_id = role.id
+        self.sauvegarder_config()  # S'assurer que ça enregistre "staff_role_id": role.id
+
+        await interaction.response.send_message(
+            f"✅ Le rôle {role.mention} a été défini comme rôle Staff pour Twitch.",
+            ephemeral=True
+        )
+
     @twitch_group.command(name="salon", description="Définir le salon d'annonce pour les lives")
-    @app_commands.checks.has_role("👤 | Staff")
+    @is_twitch_staff()
     @app_commands.describe(salon="Le salon textuel où envoyer les alertes")
     async def config_salon(self, interaction: discord.Interaction, salon: discord.TextChannel):
         self.id_salon_annonce_stream = salon.id
@@ -252,7 +286,7 @@ class AnnonceStreamCog(commands.Cog):
         )
 
     @twitch_group.command(name="role", description="Définir le rôle mentionné lors des lives")
-    @app_commands.checks.has_role("👤 | Staff")
+    @is_twitch_staff()
     @app_commands.describe(role="Le rôle à notifier")
     async def config_role(self, interaction: discord.Interaction, role: discord.Role):
         self.id_role_annonce_stream = role.id
@@ -263,9 +297,10 @@ class AnnonceStreamCog(commands.Cog):
         )
 
     @twitch_group.command(name="ajouter", description="Ajouter une chaîne à surveiller (lien ou pseudo)")
-    @app_commands.checks.has_role("👤 | Staff")
+    @is_twitch_staff()
     @app_commands.describe(chaine="Lien Twitch (ex: twitch.tv/streamer) ou pseudo direct")
     async def add_streamer(self, interaction: discord.Interaction, chaine: str):
+        username = self.extraire_pseudo_twitch(chaine)
 
         if not username:
             await interaction.response.send_message(
@@ -288,7 +323,7 @@ class AnnonceStreamCog(commands.Cog):
             )
 
     @twitch_group.command(name="retirer", description="Retirer une chaîne de la liste de surveillance")
-    @app_commands.checks.has_role("👤 | Staff")
+    @is_twitch_staff()
     @app_commands.describe(chaine="Lien Twitch ou pseudo à retirer")
     async def remove_streamer(self, interaction: discord.Interaction, chaine: str):
         username = self.extraire_pseudo_twitch(chaine)
