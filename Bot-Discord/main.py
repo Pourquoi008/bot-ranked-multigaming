@@ -25,7 +25,7 @@ class Bot(commands.Bot):
         await self.db.connect()
 
         # 2. Chargement des extensions
-        for extension in ['Annonce_ranked', 'Reaction_role', 'Annonce_stream']:
+        for extension in ['Annonce_ranked', 'Reaction_role', 'Annonce_stream','Ranked1V1']:
             await self.load_extension(f'cogs.{extension}')
 
         # 3. Synchronisation des slash commands (une seule fois au démarrage)

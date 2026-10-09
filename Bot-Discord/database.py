@@ -80,3 +80,40 @@ class Database:
                 FROM players 
                 ORDER BY (matches_played >= 3) DESC, elo DESC
             """)
+
+    ## Modification elo
+    async def set_player_elo(self, user_id: int, elo: int, username: str | None = None) -> tuple[int, int]:
+        """Définit manuellement l'Elo et renvoie (elo, matches_played)."""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT matches_played FROM players WHERE user_id = $1", user_id)
+            if row:
+                if username:
+                    await conn.execute("UPDATE players SET elo = $1, username = $2 WHERE user_id = $3", elo, username, user_id)
+                else:
+                    await conn.execute("UPDATE players SET elo = $1 WHERE user_id = $2", elo, user_id)
+                return elo, row["matches_played"]
+            else:
+                await conn.execute(
+                    "INSERT INTO players (user_id, username, elo, matches_played) VALUES ($1, $2, $3, 0)",
+                    user_id, username, elo
+                )
+                return elo, 0
+
+    async def adjust_player_elo(self, user_id: int, delta: int, username: str | None = None) -> tuple[int, int]:
+        """Ajuste l'Elo et renvoie (nouveau_score, matches_played)."""
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow("SELECT elo, matches_played FROM players WHERE user_id = $1", user_id)
+            if row:
+                new_elo = max(0, row["elo"] + delta)
+                if username:
+                    await conn.execute("UPDATE players SET elo = $1, username = $2 WHERE user_id = $3", new_elo, username, user_id)
+                else:
+                    await conn.execute("UPDATE players SET elo = $1 WHERE user_id = $2", new_elo, user_id)
+                return new_elo, row["matches_played"]
+            else:
+                new_elo = max(0, 1200 + delta)
+                await conn.execute(
+                    "INSERT INTO players (user_id, username, elo, matches_played) VALUES ($1, $2, $3, 0)",
+                    user_id, username, new_elo
+                )
+                return new_elo, 0
