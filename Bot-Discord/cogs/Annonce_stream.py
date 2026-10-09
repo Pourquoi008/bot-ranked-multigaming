@@ -51,6 +51,22 @@ class AnnonceStreamCog(commands.Cog):
 
     def cog_unload(self):
         self.verifier_streams.cancel()
+
+    # Gestion des erreurs d'interaction
+    async def cog_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        """Intercepte les erreurs de vérification et répond proprement à l'utilisateur."""
+        # Si l'erreur provient du check custom
+        message = str(error)
+        
+        # Si l'erreur est encapsulée dans un CheckFailure
+        if hasattr(error, "original"):
+            message = str(error.original)
+
+        if interaction.response.is_done():
+            await interaction.followup.send(message, ephemeral=True)
+        else:
+            await interaction.response.send_message(message, ephemeral=True)
+
     # -- Prédicat Personnalisé pour vérifier le rôle Staff --
     def is_twitch_staff():
         """Vérifie si l'utilisateur possède le rôle staff configuré ou est administrateur."""
