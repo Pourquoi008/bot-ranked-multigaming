@@ -9,6 +9,75 @@ from database import PLACEMENT_MATCHES_REQUIRED, get_rank_display
 # Chemin vers config.json
 CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
 
+class MatchmakingView(discord.ui.View):
+    def __init__(self, cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(
+        label="Rechercher un match",
+        style=discord.ButtonStyle.success,
+        emoji="⚔️",
+        custom_id="ranked_matchmaking_join"
+    )
+    async def join_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user = interaction.user
+        queue = self.cog.queue
+
+        # 1. Vérifier si le joueur est déjà en file
+        if user.id in queue:
+            await interaction.response.send_message(
+                "⏳ Tu es déjà dans la file d'attente. Patiente encore un instant...",
+                ephemeral=True
+            )
+            return
+
+        # 2. Si la file est vide, on l'ajoute
+        if len(queue) == 0:
+            queue.append(user.id)
+            await interaction.response.send_message(
+                "✅ Tu as rejoint la file d'attente 1v1 ! Dès qu'un joueur rejoint, le salon de match sera créé.",
+                ephemeral=True
+            )
+            return
+
+        # 3. Si un adversaire attend déjà, on lance le match
+        opponent_id = queue.pop(0)
+        opponent = interaction.guild.get_member(opponent_id)
+
+        # Si l'adversaire n'est plus sur le serveur ou invalide
+        if not opponent or opponent.id == user.id:
+            queue.append(user.id)
+            await interaction.response.send_message(
+                "✅ Tu as rejoint la file d'attente 1v1 !",
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.send_message("⚔️ Adversaire trouvé ! Création du salon...", ephemeral=True)
+        await self.cog.create_match_channel(interaction.guild, user, opponent)
+
+    @discord.ui.button(
+        label="Quitter la file",
+        style=discord.ButtonStyle.danger,
+        emoji="🚪",
+        custom_id="ranked_matchmaking_leave"
+    )
+    async def leave_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user = interaction.user
+        queue = self.cog.queue
+
+        if user.id in queue:
+            queue.remove(user.id)
+            await interaction.response.send_message(
+                "🚪 Tu as quitté la file d'attente.",
+                ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "Tu n'es actuellement pas dans la file d'attente.",
+                ephemeral=True
+            )
 
 def get_ranked_config() -> dict:
     """Lit uniquement la section 'ranked' du fichier config.json."""
@@ -145,6 +214,87 @@ class Ranked1V1(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    # Envoie du message de matchmaking dans le salon configuré
+    async def cog_load(self):
+        # Enregistre la vue persistante pour qu'elle fonctionne après redémarrage
+        self.bot.add_view(MatchmakingView(self))
+
+    async def create_match_channel(self, guild: discord.Guild, p1: discord.Member, p2: discord.Member):
+        """Crée le salon temporaire privé pour les deux joueurs sous la catégorie configurée."""
+        cfg = get_ranked_config()
+        cat_id = cfg.get("match_category_id")
+        ref_id = cfg.get("referee_role_id")
+
+        category = guild.get_channel(cat_id) if cat_id else None
+        ref_role = guild.get_role(ref_id) if ref_id else None
+
+        # Permissions : invisible pour tout le monde sauf les deux joueurs, le bot et les arbitres
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            p1: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            p2: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+        }
+
+        if ref_role:
+            overwrites[ref_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+
+        channel_name = f"⚔️・{p1.name[:10]}-vs-{p2.name[:10]}"
+        channel = await guild.create_text_channel(
+            name=channel_name,
+            category=category,
+            overwrites=overwrites
+        )
+
+        # Récupération de l'Elo des deux joueurs pour l'affichage
+        elo1, _ = await self.bot.db.get_player_data(p1.id, p1.name)
+        elo2, _ = await self.bot.db.get_player_data(p2.id, p2.name)
+
+        embed = discord.Embed(
+            title="⚔️ Match 1v1 — Prêt pour le combat !",
+            description=f"Le duel oppose {p1.mention} à {p2.mention}.\nAjoutez-vous en jeu et lancez la partie !",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name=p1.display_name, value=f"Elo : **{elo1}**", inline=True)
+        embed.add_field(name=p2.display_name, value=f"Elo : **{elo2}**", inline=True)
+        embed.set_footer(text="Une fois le match terminé, un arbitre validera le résultat.")
+
+        await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed)
+
+    # Commande pour poser le panneau dans le salon configuré
+    @setup_group.command(name="spawn_panel", description="Poste le panneau de matchmaking dans le salon configuré")
+    async def spawn_panel(self, interaction: discord.Interaction):
+        cfg = get_ranked_config()
+        channel_id = cfg.get("matchmaking_channel_id")
+
+        if not channel_id:
+            await interaction.response.send_message(
+                "❌ Aucun salon de matchmaking n'a été configuré. Fais d'abord `/setup_ranked channel`.",
+                ephemeral=True
+            )
+            return
+
+        channel = interaction.guild.get_channel(channel_id)
+        if not channel:
+            await interaction.response.send_message("❌ Le salon configuré est introuvable.", ephemeral=True)
+            return
+
+        embed = discord.Embed(
+            title="🏆 Arène Compétitive — Ranked 1v1",
+            description=(
+                "Prêt à monter dans le classement ?\n\n"
+                "• **Clique sur le bouton vert** pour rejoindre la file d'attente.\n"
+                "• Dès qu'un adversaire est disponible, un salon privé sera créé automatiquement.\n"
+                "• Tu peux quitter la file à tout moment avec le bouton rouge."
+            ),
+            color=discord.Color.blurple()
+        )
+        embed.set_footer(text="Système 1v1 Automatisé • Bonne chance !")
+
+        view = MatchmakingView(self)
+        await channel.send(embed=embed, view=view)
+        await interaction.response.send_message(f"✅ Panneau envoyé avec succès dans {channel.mention} !", ephemeral=True)
+
     # ==========================================
     # GESTION ADMINISTRATIVE DE L'ELO (Neon DB)
     # ==========================================
@@ -191,6 +341,78 @@ class Ranked1V1(commands.Cog):
             f"🔻 **-{montant}** Elo retirés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
         )
 
+# ==========================================
+# SALON MATCHMAKING (Boutons)
+# ==========================================
+class MatchmakingView(discord.ui.View):
+    def __init__(self, cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(
+        label="Rechercher un match",
+        style=discord.ButtonStyle.success,
+        emoji="⚔️",
+        custom_id="ranked_matchmaking_join"
+    )
+    async def join_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user = interaction.user
+        queue = self.cog.queue
+
+        # 1. Vérifier si le joueur est déjà en file
+        if user.id in queue:
+            await interaction.response.send_message(
+                "⏳ Tu es déjà dans la file d'attente. Patiente encore un instant...",
+                ephemeral=True
+            )
+            return
+
+        # 2. Si la file est vide, on l'ajoute
+        if len(queue) == 0:
+            queue.append(user.id)
+            await interaction.response.send_message(
+                "✅ Tu as rejoint la file d'attente 1v1 ! Dès qu'un joueur rejoint, le salon de match sera créé.",
+                ephemeral=True
+            )
+            return
+
+        # 3. Si un adversaire attend déjà, on lance le match
+        opponent_id = queue.pop(0)
+        opponent = interaction.guild.get_member(opponent_id)
+
+        # Si l'adversaire n'est plus sur le serveur ou invalide
+        if not opponent or opponent.id == user.id:
+            queue.append(user.id)
+            await interaction.response.send_message(
+                "✅ Tu as rejoint la file d'attente 1v1 !",
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.send_message("⚔️ Adversaire trouvé ! Création du salon...", ephemeral=True)
+        await self.cog.create_match_channel(interaction.guild, user, opponent)
+
+    @discord.ui.button(
+        label="Quitter la file",
+        style=discord.ButtonStyle.danger,
+        emoji="🚪",
+        custom_id="ranked_matchmaking_leave"
+    )
+    async def leave_queue(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user = interaction.user
+        queue = self.cog.queue
+
+        if user.id in queue:
+            queue.remove(user.id)
+            await interaction.response.send_message(
+                "🚪 Tu as quitté la file d'attente.",
+                ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "Tu n'es actuellement pas dans la file d'attente.",
+                ephemeral=True
+            )
 
 async def setup(bot):
     await bot.add_cog(Ranked1V1(bot))
