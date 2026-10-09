@@ -267,7 +267,7 @@ class MatchControlView(discord.ui.View):
             description=(
                 f"{loser.mention} a déclaré forfait !\n"
                 f"🏆 Victoire attribuée à {winner.mention}.\n\n"
-                "Un arbitre ou la commande de résultat appliquera l'ajustement d'Elo."
+                "Un arbitre appliquera l'ajustement d'Elo."
             ),
             color=discord.Color.red()
         )
