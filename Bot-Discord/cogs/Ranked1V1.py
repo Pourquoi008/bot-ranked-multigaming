@@ -155,6 +155,96 @@ class MatchmakingView(discord.ui.View):
         else:
             await interaction.response.send_message("Tu n'es pas dans la file d'attente.", ephemeral=True)
 
+class MatchControlView(discord.ui.View):
+    """Gère les actions rapides de fin de partie : Abandon et Match Nul mutuel."""
+
+    def __init__(self, cog, p1: discord.Member, p2: discord.Member):
+        super().__init__(timeout=None)
+        self.cog = cog
+        self.p1 = p1
+        self.p2 = p2
+        self.draw_votes: set[int] = set()
+        self.match_ended = False
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Restreint l'usage des boutons aux deux participants du match."""
+        if interaction.user.id not in (self.p1.id, self.p2.id):
+            await interaction.response.send_message(
+                "❌ Seuls les deux duellistes peuvent utiliser ces boutons.",
+                ephemeral=True
+            )
+            return False
+        if self.match_ended:
+            await interaction.response.send_message(
+                "⚠️ Ce match est déjà clôturé.",
+                ephemeral=True
+            )
+            return False
+        return True
+
+    @discord.ui.button(
+        label="Demander match nul (0/2)",
+        style=discord.ButtonStyle.secondary,
+        emoji="🤝",
+        custom_id="match_action_draw"
+    )
+    async def request_draw(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = interaction.user.id
+
+        if user_id in self.draw_votes:
+            self.draw_votes.remove(user_id)
+            button.label = f"Demander match nul ({len(self.draw_votes)}/2)"
+            await interaction.response.edit_message(view=self)
+            await interaction.followup.send(
+                f"↩️ {interaction.user.mention} a annulé sa proposition de match nul.",
+                ephemeral=False
+            )
+            return
+
+        self.draw_votes.add(user_id)
+        button.label = f"Demander match nul ({len(self.draw_votes)}/2)"
+
+        if len(self.draw_votes) == 2:
+            self.match_ended = True
+            for child in self.children:
+                child.disabled = True
+            await interaction.response.edit_message(view=self)
+
+            embed = discord.Embed(
+                title="🤝 Match Nul Accepté",
+                description="Les deux duellistes se sont mis d'accord pour un match nul.\nLe salon sera fermé dans quelques instants.",
+                color=discord.Color.light_grey()
+            )
+            await interaction.followup.send(embed=embed)
+        else:
+            await interaction.response.edit_message(view=self)
+            other = self.p2 if user_id == self.p1.id else self.p1
+            await interaction.followup.send(
+                f"🤝 {interaction.user.mention} propose un **match nul**. {other.mention}, clique sur le bouton pour accepter.",
+                ephemeral=False
+            )
+
+    @discord.ui.button(
+        label="Déclarer forfait",
+        style=discord.ButtonStyle.danger,
+        emoji="🏳️",
+        custom_id="match_action_forfeit"
+    )
+    async def forfeit(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.match_ended = True
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
+
+        loser = interaction.user
+        winner = self.p2 if loser.id == self.p1.id else self.p1
+
+        embed = discord.Embed(
+            title="🏳️ Victoire par Abandon",
+            description=f"{loser.mention} a déclaré forfait.\n🏆 Victoire accordée à {winner.mention} !",
+            color=discord.Color.red()
+        )
+        await interaction.response.send_message(embed=embed)
 
 # ==============================================================================
 # COG PRINCIPAL : RANKED 1V1
@@ -309,7 +399,8 @@ class Ranked1V1(commands.Cog):
         embed.add_field(name=p2.display_name, value=f"Elo : **{elo2}**", inline=True)
         embed.set_footer(text="Une fois le match terminé, un arbitre validera le résultat.")
 
-        await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed)
+        view = MatchControlView(self, p1, p2)
+        await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed, view=view)
 
     @setup_group.command(name="spawn_panel", description="Poste le panneau de matchmaking dans le salon configuré")
     async def spawn_panel(self, interaction: discord.Interaction):
