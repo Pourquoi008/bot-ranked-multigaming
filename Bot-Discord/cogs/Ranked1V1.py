@@ -281,3 +281,109 @@ class Ranked1V1(commands.Cog):
 
         # Permissions : visible uniquement par p1, p2, le bot et les arbitres
         overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            p1: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+            p2: discord.PermissionOverwrite(read_messages=True, send_messages=True),
+        }
+
+        if ref_role:
+            overwrites[ref_role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
+
+        channel_name = f"⚔️・{p1.name[:10]}-vs-{p2.name[:10]}"
+        channel = await guild.create_text_channel(
+            name=channel_name,
+            category=category,
+            overwrites=overwrites
+        )
+
+        elo1, _ = await self.bot.db.get_player_data(p1.id, p1.name)
+        elo2, _ = await self.bot.db.get_player_data(p2.id, p2.name)
+
+        embed = discord.Embed(
+            title="⚔️ Match 1v1 — Prêt pour le combat !",
+            description=f"Le duel oppose {p1.mention} à {p2.mention}.\nAjoutez-vous en jeu et lancez la partie !",
+            color=discord.Color.gold()
+        )
+        embed.add_field(name=p1.display_name, value=f"Elo : **{elo1}**", inline=True)
+        embed.add_field(name=p2.display_name, value=f"Elo : **{elo2}**", inline=True)
+        embed.set_footer(text="Une fois le match terminé, un arbitre validera le résultat.")
+
+        await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed)
+
+    @setup_group.command(name="spawn_panel", description="Poste le panneau de matchmaking dans le salon configuré")
+    async def spawn_panel(self, interaction: discord.Interaction):
+        """Envoie l'embed interactif de file d'attente dans le salon prévu."""
+        cfg = get_ranked_config()
+        channel_id = cfg.get("matchmaking_channel_id")
+
+        if not channel_id:
+            await interaction.response.send_message(
+                "❌ Aucun salon de matchmaking n'a été configuré. Fais d'abord `/setup_ranked channel`.",
+                ephemeral=True
+            )
+            return
+
+        channel = interaction.guild.get_channel(channel_id)
+        if not channel:
+            await interaction.response.send_message("❌ Le salon configuré est introuvable.", ephemeral=True)
+            return
+
+        embed = build_matchmaking_embed(len(self.queue))
+        view = MatchmakingView(self)
+        await channel.send(embed=embed, view=view)
+        await interaction.response.send_message(f"✅ Panneau envoyé avec succès dans {channel.mention} !", ephemeral=True)
+
+    # --------------------------------------------------------------------------
+    # 4. GESTION ADMINISTRATIVE DE L'ELO (/elo_admin)
+    # --------------------------------------------------------------------------
+
+    @admin_group.command(name="set", description="Définit manuellement l'Elo d'un joueur")
+    @app_commands.describe(joueur="Le joueur ciblé", valeur="Valeur d'Elo")
+    async def set_elo(self, interaction: discord.Interaction, joueur: discord.Member, valeur: int):
+        if valeur < 0:
+            await interaction.response.send_message("L'Elo ne peut pas être négatif.", ephemeral=True)
+            return
+
+        new_score, matches = await self.bot.db.set_player_elo(joueur.id, valeur, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
+
+        await interaction.response.send_message(
+            f"✏️ L'Elo de {joueur.mention} a été défini à **{new_score}** (Rang : **{new_rank}**)."
+        )
+
+    @admin_group.command(name="add", description="Ajoute des points d'Elo à un joueur")
+    @app_commands.describe(joueur="Le joueur ciblé", montant="Points à ajouter")
+    async def add_elo(self, interaction: discord.Interaction, joueur: discord.Member, montant: int):
+        if montant <= 0:
+            await interaction.response.send_message("Le montant doit être supérieur à 0.", ephemeral=True)
+            return
+
+        new_score, matches = await self.bot.db.adjust_player_elo(joueur.id, montant, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
+
+        await interaction.response.send_message(
+            f"🔼 **+{montant}** Elo accordés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
+        )
+
+    @admin_group.command(name="remove", description="Retire des points d'Elo à un joueur")
+    @app_commands.describe(joueur="Le joueur ciblé", montant="Points à retirer")
+    async def remove_elo(self, interaction: discord.Interaction, joueur: discord.Member, montant: int):
+        if montant <= 0:
+            await interaction.response.send_message("Le montant doit être supérieur à 0.", ephemeral=True)
+            return
+
+        new_score, matches = await self.bot.db.adjust_player_elo(joueur.id, -montant, joueur.name)
+        new_rank = get_rank_display(new_score, matches)
+
+        await interaction.response.send_message(
+            f"🔻 **-{montant}** Elo retirés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
+        )
+
+
+# ==============================================================================
+# ENREGISTREMENT DU COG DANS LE BOT
+# ==============================================================================
+
+async def setup(bot):
+    await bot.add_cog(Ranked1V1(bot))
