@@ -78,6 +78,90 @@ def build_matchmaking_embed(queue_count: int) -> discord.Embed:
     embed.set_footer(text="Système 1v1 Automatisé • Bonne chance !")
     return embed
 
+# Panneau Abitre (fin de match)
+class RefereeControlView(discord.ui.View):
+    """Panneau d'arbitrage final avec 3 boutons d'action."""
+
+    def __init__(self, cog, channel_id: int):
+        super().__init__(timeout=None)
+        self.cog = cog
+        self.channel_id = channel_id
+        self.resolved = False
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        cfg = get_ranked_config()
+        ref_role_id = cfg.get("referee_role_id")
+
+        is_admin = interaction.user.guild_permissions.administrator
+        has_ref_role = ref_role_id and any(r.id == ref_role_id for r in interaction.user.roles)
+
+        if not (is_admin or has_ref_role):
+            await interaction.response.send_message(
+                "⛔ Seuls les arbitres officiels peuvent valider l'issue du match.",
+                ephemeral=True
+            )
+            return False
+
+        if self.resolved:
+            await interaction.response.send_message("⚠️ Ce match a déjà été validé ou clôturé.", ephemeral=True)
+            return False
+
+        return True
+
+    # --- Bouton 1 : Joueur A Win ---
+    @discord.ui.button(label="Joueur A Win", style=discord.ButtonStyle.success, emoji="🏆")
+    async def win_player_a(self, interaction: discord.Interaction, button: discord.ui.Button):
+        match = self.cog.active_matches.get(self.channel_id)
+        if not match:
+            await interaction.response.send_message("❌ Données du match introuvables.", ephemeral=True)
+            return
+
+        self.resolved = True
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
+
+        winner = match["p1"]
+        loser = match["p2"]
+        await self.cog.resolve_match(interaction.channel, winner=winner, loser=loser, referee=interaction.user)
+
+    # --- Bouton 2 : Joueur B Win ---
+    @discord.ui.button(label="Joueur B Win", style=discord.ButtonStyle.primary, emoji="🏆")
+    async def win_player_b(self, interaction: discord.Interaction, button: discord.ui.Button):
+        match = self.cog.active_matches.get(self.channel_id)
+        if not match:
+            await interaction.response.send_message("❌ Données du match introuvables.", ephemeral=True)
+            return
+
+        self.resolved = True
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
+
+        winner = match["p2"]
+        loser = match["p1"]
+        await self.cog.resolve_match(interaction.channel, winner=winner, loser=loser, referee=interaction.user)
+
+    # --- Bouton 3 : Annuler Match ---
+    @discord.ui.button(label="Annuler Match", style=discord.ButtonStyle.danger, emoji="🛑")
+    async def cancel_match(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.resolved = True
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(view=self)
+
+        self.cog.active_matches.pop(self.channel_id, None)
+
+        embed = discord.Embed(
+            title="🛑 Match Annulé",
+            description=f"Ce match a été annulé par l'arbitre {interaction.user.mention}.\nFermeture du salon dans **10 secondes**.",
+            color=discord.Color.red()
+        )
+        await interaction.followup.send(embed=embed)
+
+        import asyncio
+        await asyncio.sleep(10)
+        await interaction.channel.delete(reason=f"Annulé par l'arbitre {interaction.user.name}")
 
 class MatchmakingView(discord.ui.View):
     """Vue persistante contenant les boutons pour rejoindre ou quitter la file."""
@@ -245,7 +329,10 @@ class MatchControlView(discord.ui.View):
     )
     async def forfeit(self, interaction: discord.Interaction, button: discord.ui.Button):
         loser = interaction.user
-        winner = self.p2 if loser.id == self.p1.id else self.p1
+        if loser.id == self.p1.id:
+            winner = self.p2 
+        else:
+            winner = self.p1
 
         # Vérification si l'utilisateur re-clique pour confirmer son propre abandon
         if loser.id not in self.forfeit_votes:
@@ -281,6 +368,7 @@ class Ranked1V1(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.queue: list[int] = []
+        self.active_matches: dict[int, dict] = {}
 
     async def cog_load(self):
         """Enregistre la vue persistante au chargement du cog."""
@@ -389,6 +477,15 @@ class Ranked1V1(commands.Cog):
 
     async def create_match_channel(self, guild: discord.Guild, p1: discord.Member, p2: discord.Member):
         """Crée le salon temporaire privé pour les deux joueurs sous la catégorie configurée."""
+        self.active_matches[channel.id] = {
+            "p1": p1,
+            "p2": p2,
+            "scores": {p1.id: 0, p2.id: 0},
+            "round": 1,
+            "round_msg_id": None,
+            "waiting_vote": True
+        }
+        
         cfg = get_ranked_config()
         cat_id = cfg.get("match_category_id")
         ref_id = cfg.get("referee_role_id")
@@ -428,6 +525,7 @@ class Ranked1V1(commands.Cog):
 
         view = MatchControlView(self, p1, p2)
         await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed, view=view)
+        await self.send_round_message(channel, self.active_matches[channel.id])
 
     @setup_group.command(name="spawn_panel", description="Poste le panneau de matchmaking dans le salon configuré")
     async def spawn_panel(self, interaction: discord.Interaction):
@@ -498,6 +596,123 @@ class Ranked1V1(commands.Cog):
             f"🔻 **-{montant}** Elo retirés à {joueur.mention} (Total : **{new_score}** — **{new_rank}**)."
         )
 
+    # --------------------------------------------------------------------------
+    # 5. Affichage manche par manche du match
+    # --------------------------------------------------------------------------
+    async def send_round_message(self, channel: discord.TextChannel, match: dict):
+        """Poste un nouveau message distinct pour chaque manche."""
+        p1 = match["p1"]
+        p2 = match["p2"]
+        round_num = match["round"]
+
+        embed = discord.Embed(
+            title=f"🎮 Manche {round_num} / 3",
+            description=(
+                f"Réagissez avec l'émoji correspondant au vainqueur de ce jeu :\n\n"
+                f"🅰️ — **{p1.display_name}**\n"
+                f"🅱️ — **{p2.display_name}**\n\n"
+                f"*Score actuel : {p1.display_name} `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` {p2.display_name}*"
+            ),
+            color=discord.Color.blurple()
+        )
+        msg = await channel.send(embed=embed)
+        match["round_msg_id"] = msg.id
+        match["waiting_vote"] = True
+
+        await msg.add_reaction("🅰️")
+        await msg.add_reaction("🅱️")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        """Détecte la réaction sans supprimer ni verrouiller les émojis."""
+        # 1. Ignorer les réactions du bot lui-même
+        if payload.user_id == self.bot.user.id:
+            return
+
+        channel_id = payload.channel_id
+        if channel_id not in self.active_matches:
+            return
+
+        match = self.active_matches[channel_id]
+
+        # 2. Vérifier si ce message est bien la manche en attente de vote
+        if payload.message_id != match.get("round_msg_id") or not match.get("waiting_vote"):
+            return
+
+        p1 = match["p1"]
+        p2 = match["p2"]
+
+        # 3. Seuls les deux participants peuvent voter
+        if payload.user_id not in (p1.id, p2.id):
+            return
+
+        emoji_str = str(payload.emoji)
+        if emoji_str not in ("🅰️", "🅱️"):
+            return
+
+        channel = self.bot.get_channel(channel_id)
+        if not channel:
+            return
+
+        # On arrête d'écouter cette manche
+        match["waiting_vote"] = False
+
+        # 4. Comptabilisation du point
+        round_winner = p1 if emoji_str == "🅰️" else p2
+        match["scores"][round_winner.id] += 1
+        current_round = match["round"]
+
+        # Message de transition dans le salon
+        await channel.send(
+            f"✅ **Manche {current_round}** terminée ! Remportée par {round_winner.mention}.\n"
+            f"📊 Score : **{p1.display_name}** `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` **{p2.display_name}**"
+        )
+
+        # 5. Si la manche 3 vient d'être validée -> affichage du panneau arbitre
+        if current_round >= 3:
+            ref_embed = discord.Embed(
+                title="⚖️ Panneau Arbitrage — Fin des 3 manches",
+                description=(
+                    f"Les 3 manches sont closes !\n"
+                    f"• **Score final déclaré** : {p1.mention} `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` {p2.mention}\n\n"
+                    "L'arbitre clique sur le bouton correspondant pour valider le vainqueur officiel :"
+                ),
+                color=discord.Color.gold()
+            )
+
+            ref_view = RefereeControlView(self, channel_id)
+            ref_view.children[0].label = f"{p1.display_name[:15]} Win"
+            ref_view.children[1].label = f"{p2.display_name[:15]} Win"
+
+            await channel.send(embed=ref_embed, view=ref_view)
+        else:
+            # Passage à la manche suivante : nouveau message posté à la suite
+            match["round"] += 1
+            await self.send_round_message(channel, match)
+
+    # --------------------------------------------------------------------------
+    # 6. CLÔTURE DU MATCH APRÈS VALIDATION ARBITRALE
+    # --------------------------------------------------------------------------
+    async def resolve_match(self, channel: discord.TextChannel, winner: discord.Member, loser: discord.Member, referee: discord.Member):
+        """Clôture le match après validation arbitrale."""
+        # Nettoyage du match en mémoire
+        self.active_matches.pop(channel.id, None)
+
+        # TODO : Emplacement pour le calcul d'Elo futur
+        embed = discord.Embed(
+            title="⚔️ Match Homologué",
+            description=f"Validé par l'arbitre {referee.mention}.",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🏆 Vainqueur", value=winner.mention, inline=True)
+        embed.add_field(name="💀 Perdant", value=loser.mention, inline=True)
+        embed.set_footer(text="Fermeture du salon dans 20 secondes...")
+
+        await channel.send(embed=embed)
+
+        import asyncio
+        await asyncio.sleep(20)
+        await channel.delete(reason="Match terminé et validé par l'arbitre")
 
 # ==============================================================================
 # ENREGISTREMENT DU COG DANS LE BOT
