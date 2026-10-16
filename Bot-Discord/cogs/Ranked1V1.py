@@ -477,15 +477,6 @@ class Ranked1V1(commands.Cog):
 
     async def create_match_channel(self, guild: discord.Guild, p1: discord.Member, p2: discord.Member):
         """Crée le salon temporaire privé pour les deux joueurs sous la catégorie configurée."""
-        self.active_matches[channel.id] = {
-            "p1": p1,
-            "p2": p2,
-            "scores": {p1.id: 0, p2.id: 0},
-            "round": 1,
-            "round_msg_id": None,
-            "waiting_vote": True
-        }
-        
         cfg = get_ranked_config()
         cat_id = cfg.get("match_category_id")
         ref_id = cfg.get("referee_role_id")
@@ -523,6 +514,15 @@ class Ranked1V1(commands.Cog):
         embed.add_field(name=p2.display_name, value=f"Elo : **{elo2}**", inline=True)
         embed.set_footer(text="Une fois le match terminé, un arbitre validera le résultat.")
 
+        self.active_matches[channel.id] = {
+                            "p1": p1,
+                            "p2": p2,
+                            "scores": {p1.id: 0, p2.id: 0},
+                            "round": 1,
+                            "round_msg_id": None,
+                            "waiting_vote": True
+                        }
+        
         view = MatchControlView(self, p1, p2)
         await channel.send(content=f"{p1.mention} vs {p2.mention}", embed=embed, view=view)
         await self.send_round_message(channel, self.active_matches[channel.id])
