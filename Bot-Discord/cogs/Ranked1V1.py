@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from random import random
+import random
 
 import discord
 from discord import app_commands
