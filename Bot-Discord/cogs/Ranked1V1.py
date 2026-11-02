@@ -22,14 +22,24 @@ CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
 
 def get_ranked_config() -> dict:
     """Lit uniquement la section 'ranked' du fichier config.json."""
+    default_config = {
+        "matchmaking_channel_id": None,
+        "match_category_id": None,
+        "referee_role_id": None,
+        "jeux": ["Jeu par défaut"]
+    }
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("ranked", {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None,"jeux": None})
+                ranked_data = data.get("ranked", default_config)
+                # Sécurité supplémentaire au cas où "jeux": null dans le json
+                if not ranked_data.get("jeux"):
+                    ranked_data["jeux"] = ["Jeu par défaut"]
+                return ranked_data
         except Exception as e:
             print(f"⚠️ Erreur de lecture de {CONFIG_FILE} : {e}")
-    return {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None,"jeux": None}
+    return default_config
 
 
 def update_ranked_config(key: str, value: int):
@@ -606,9 +616,12 @@ class Ranked1V1(commands.Cog):
         p1 = match["p1"]
         p2 = match["p2"]
         round_num = match["round"]
+        cfg = get_ranked_config()
+        liste_jeux = cfg.get("jeux") or ["Jeu par défaut"]
+        jeu_selectionne = random.choice(liste_jeux)
 
         embed = discord.Embed(
-            title=f"🎮 Manche {round_num} / 3 | Jeux : {random.choice(match['games'])}",
+            title=f"🎮 Manche {round_num} / 3 | Jeux : {jeu_selectionne}",
             description=(
                 f"Réagissez avec l'émoji correspondant au vainqueur de ce jeu :\n\n"
                 f"🅰️ — **{p1.display_name}**\n"
