@@ -509,7 +509,7 @@ class Ranked1V1(commands.Cog):
 
         embed = discord.Embed(
             title="⚔️ Match 1v1 — Prêt pour le combat !",
-            description=f"Le duel oppose {p1.mention} à {p2.mention}.\nLe jeux pour la 1ère manche est : {random.choice(jeux)}\n\nRéagissez avec l'émoji correspondant au vainqueur de chaque manche.",
+            description=f"Le duel oppose {p1.mention} à {p2.mention}.\n\nRéagissez avec l'émoji correspondant au vainqueur de chaque manche.",
             color=discord.Color.gold()
         )
         embed.add_field(name=p1.display_name, value=f"Elo : **{elo1}**", inline=True)
@@ -608,12 +608,13 @@ class Ranked1V1(commands.Cog):
         round_num = match["round"]
 
         embed = discord.Embed(
-            title=f"🎮 Manche {round_num} / 3",
+            title=f"🎮 Manche {round_num} / 3 | Jeux : {random.choice(match['games'])}",
             description=(
                 f"Réagissez avec l'émoji correspondant au vainqueur de ce jeu :\n\n"
                 f"🅰️ — **{p1.display_name}**\n"
                 f"🅱️ — **{p2.display_name}**\n\n"
-                f"*Score actuel : {p1.display_name} `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` {p2.display_name}*"
+                f"*Score actuel : {p1.display_name} `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` {p2.display_name}*\n\n"
+                f"# ⚠️ VEUILLEZ INSÉRER UN SCREEN ATTESTANT LA VICTOIRE DU GAGNANT POUR CHAQUE MANCHE DANS CE SALON."
             ),
             color=discord.Color.blurple()
         )
