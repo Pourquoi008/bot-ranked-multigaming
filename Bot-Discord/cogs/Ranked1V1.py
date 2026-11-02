@@ -33,7 +33,6 @@ def get_ranked_config() -> dict:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 ranked_data = data.get("ranked", default_config)
-                # Sécurité supplémentaire au cas où "jeux": null dans le json
                 if not ranked_data.get("jeux"):
                     ranked_data["jeux"] = ["Jeu par défaut"]
                 return ranked_data
