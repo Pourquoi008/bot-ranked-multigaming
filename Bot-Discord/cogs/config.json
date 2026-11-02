@@ -7,6 +7,31 @@
   "ranked": {
     "matchmaking_channel_id": null,
     "match_category_id": null,
-    "referee_role_id": null
+    "referee_role_id": null,
+    "jeux": [
+      "Apex Legends",
+      "BAPBAP",
+      "Brawlhalla",
+      "CS2",
+      "Diabotical",
+      "Faaast Penguin",
+      "Fall Guys",
+      "Fortnite",
+      "GeoGuessr",
+      "Grapples Galore",
+      "Idol Showdown",
+      "LoL",
+      "MicroWorks",
+      "Mini Racer",
+      "Speedracer",
+      "Splitgate",
+      "sQuiz",
+      "Starcraft 2",
+      "Tetr.io",
+      "TFT",
+      "The Finals",
+      "Up Gun",
+      "Valorant"
+    ]
   }
 }

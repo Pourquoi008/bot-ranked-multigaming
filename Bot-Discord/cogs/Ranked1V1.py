@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from random import random
 
 import discord
 from discord import app_commands
@@ -25,10 +26,10 @@ def get_ranked_config() -> dict:
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return data.get("ranked", {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None})
+                return data.get("ranked", {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None,"jeux": None})
         except Exception as e:
             print(f"⚠️ Erreur de lecture de {CONFIG_FILE} : {e}")
-    return {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None}
+    return {"matchmaking_channel_id": None, "match_category_id": None, "referee_role_id": None,"jeux": None}
 
 
 def update_ranked_config(key: str, value: int):
@@ -480,6 +481,7 @@ class Ranked1V1(commands.Cog):
         cfg = get_ranked_config()
         cat_id = cfg.get("match_category_id")
         ref_id = cfg.get("referee_role_id")
+        jeux = cfg.get("jeux", "Jeu non défini")
 
         category = guild.get_channel(cat_id) if cat_id else None
         ref_role = guild.get_role(ref_id) if ref_id else None
@@ -507,7 +509,7 @@ class Ranked1V1(commands.Cog):
 
         embed = discord.Embed(
             title="⚔️ Match 1v1 — Prêt pour le combat !",
-            description=f"Le duel oppose {p1.mention} à {p2.mention}.\nAjoutez-vous en jeu et lancez la partie !",
+            description=f"Le duel oppose {p1.mention} à {p2.mention}.\nLe jeux pour la 1ère manche est : {random.choice(jeux)}\n\nRéagissez avec l'émoji correspondant au vainqueur de chaque manche.",
             color=discord.Color.gold()
         )
         embed.add_field(name=p1.display_name, value=f"Elo : **{elo1}**", inline=True)
@@ -698,7 +700,21 @@ class Ranked1V1(commands.Cog):
         # Nettoyage du match en mémoire
         self.active_matches.pop(channel.id, None)
 
-        # TODO : Emplacement pour le calcul d'Elo futur
+        # Calcul de l'élo
+        elo_p1=await self.bot.db.get_player_elo(winner.id);
+        elo_p2=await self.bot.db.get_player_elo(loser.id);
+        E=1 / (1 + 10^((elo_p2 - elo_p1) / 400))
+        _, match = await self.bot.db.get_player_data(winner.id, winner.name)
+        K=40 if match < 30 else 20
+        elo_winner=max(0, min(2000, elo_p1 + K * (1 - E)))
+        _, match = await self.bot.db.get_player_data(loser.id, loser.name)
+        K=40 if match < 30 else 20
+        elo_looser=max(0, min(2000, elo_p2 + K * (0 - E)))
+        # Mise à jour de l'Elo dans la base de données
+        new_winner_elo = await self.bot.db.adjust_player_elo(winner.id, elo_winner, winner.name)
+        new_loser_elo = await self.bot.db.adjust_player_elo(loser.id, elo_looser, loser.name)
+
+        
         embed = discord.Embed(
             title="⚔️ Match Homologué",
             description=f"Validé par l'arbitre {referee.mention}.",
