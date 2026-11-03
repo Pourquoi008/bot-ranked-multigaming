@@ -728,8 +728,9 @@ class Ranked1V1(commands.Cog):
         K=40 if match < 30 else 20
         elo_looser=max(0, min(2000, elo_p2 + K * (0 - E)))
         # Mise à jour de l'Elo dans la base de données
-        new_winner_elo = await self.bot.db.adjust_player_elo(winner.id, elo_winner, winner.name)
-        new_loser_elo = await self.bot.db.adjust_player_elo(loser.id, elo_looser, loser.name)
+        print(f"DEBUG: Ajustement Elo - Vainqueur: {winner.name} ({elo_p1} -> {elo_winner}), Perdant: {loser.name} ({elo_p2} -> {elo_looser})")
+        await self.bot.db.record_match(winner.id, elo_winner, winner.name)
+        await self.bot.db.record_match(loser.id, elo_looser, loser.name)
 
         
         embed = discord.Embed(
