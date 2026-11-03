@@ -379,6 +379,7 @@ class Ranked1V1(commands.Cog):
         self.bot = bot
         self.queue: list[int] = []
         self.active_matches: dict[int, dict] = {}
+        self.liste_jeux = cfg.get("jeux") or ["Jeu par défaut"]
 
     async def cog_load(self):
         """Enregistre la vue persistante au chargement du cog."""
@@ -616,8 +617,11 @@ class Ranked1V1(commands.Cog):
         p2 = match["p2"]
         round_num = match["round"]
         cfg = get_ranked_config()
-        liste_jeux = cfg.get("jeux") or ["Jeu par défaut"]
-        jeu_selectionne = random.choice(liste_jeux)
+        
+        jeu_selectionne = random.choice(self.liste_jeux)
+        self.liste_jeux.remove(jeu_selectionne)  # Retire le jeu choisi pour éviter les répétitions
+        if not self.liste_jeux:  # Si la liste est vide, on la réinitialise
+            self.liste_jeux = cfg.get("jeux") or ["Jeu par défaut"]
 
         embed = discord.Embed(
             title=f"🎮 Manche {round_num} / 3 | Jeux : {jeu_selectionne}",
@@ -684,7 +688,7 @@ class Ranked1V1(commands.Cog):
         )
 
         # 5. Si la manche 3 vient d'être validée -> affichage du panneau arbitre
-        if current_round >= 3:
+        if current_round >= 3 or match["scores"][p1.id] == 2 or match["scores"][p2.id] == 2:
             ref_embed = discord.Embed(
                 title="⚖️ Panneau Arbitrage — Fin des 3 manches",
                 description=(
