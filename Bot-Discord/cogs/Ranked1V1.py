@@ -626,7 +626,7 @@ class Ranked1V1(commands.Cog):
                 f"🅰️ — **{p1.display_name}**\n"
                 f"🅱️ — **{p2.display_name}**\n\n"
                 f"*Score actuel : {p1.display_name} `{match['scores'][p1.id]}` — `{match['scores'][p2.id]}` {p2.display_name}*\n\n"
-                f"# ⚠️ VEUILLEZ INSÉRER UN SCREEN ATTESTANT LA VICTOIRE DU GAGNANT POUR CHAQUE MANCHE DANS CE SALON."
+                f"## ⚠️ VEUILLEZ INSÉRER UN SCREEN ATTESTANT LA VICTOIRE DU GAGNANT POUR CHAQUE MANCHE DANS CE SALON."
             ),
             color=discord.Color.blurple()
         )
