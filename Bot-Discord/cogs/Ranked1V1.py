@@ -14,7 +14,7 @@ from database import PLACEMENT_MATCHES_REQUIRED, get_rank_display
 # ==============================================================================
 
 CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
-
+cfg = get_ranked_config()
 
 # ==============================================================================
 # GESTION DU FICHIER CONFIG (LECTURE / ÉCRITURE)
@@ -98,8 +98,7 @@ class RefereeControlView(discord.ui.View):
         self.channel_id = channel_id
         self.resolved = False
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        cfg = get_ranked_config()
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:    
         ref_role_id = cfg.get("referee_role_id")
 
         is_admin = interaction.user.guild_permissions.administrator
