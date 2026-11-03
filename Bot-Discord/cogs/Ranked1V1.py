@@ -419,6 +419,7 @@ class Ranked1V1(commands.Cog):
         )
         embed.set_thumbnail(url=target.display_avatar.url)
         embed.add_field(name="Rang", value=f"**{rank_badge}**", inline=True)
+        embed.add_field(name="Elo", value=f"*{elo}*", inline=True)
         embed.add_field(name="Matchs disputés", value=f"{matches}", inline=True)
 
         await interaction.response.send_message(embed=embed)
