@@ -10,13 +10,6 @@ from discord.ext import commands
 from database import PLACEMENT_MATCHES_REQUIRED, get_rank_display
 
 # ==============================================================================
-# CONFIGURATION & CHEMINS
-# ==============================================================================
-
-CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
-cfg = get_ranked_config()
-
-# ==============================================================================
 # GESTION DU FICHIER CONFIG (LECTURE / ÉCRITURE)
 # ==============================================================================
 
@@ -61,6 +54,13 @@ def update_ranked_config(key: str, value: int):
             json.dump(data, f, indent=4, ensure_ascii=False)
     except Exception as e:
         print(f"⚠️ Erreur d'écriture dans {CONFIG_FILE} : {e}")
+
+# ==============================================================================
+# CONFIGURATION & CHEMINS
+# ==============================================================================
+
+CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
+cfg = get_ranked_config()
 
 
 # ==============================================================================
