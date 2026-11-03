@@ -724,17 +724,26 @@ class Ranked1V1(commands.Cog):
         self.active_matches.pop(channel.id, None)
 
         # Calcul de l'élo
-        elo_p1,_=await self.bot.db.get_player_data(winner.id, winner.name)
-        elo_p2,_=await self.bot.db.get_player_data(loser.id, loser.name)
-        E = 1 / (1 + 10 ** (-(elo_p2 - elo_p1) / 400))
-        _, match = await self.bot.db.get_player_data(winner.id, winner.name)
-        K=40 if match < 30 else 20
-        elo_winner=max(0, min(2000, elo_p1 + K * (1 - E)))
-        _, match = await self.bot.db.get_player_data(loser.id, loser.name)
-        K=40 if match < 30 else 20
-        elo_looser=max(0, min(2000, elo_p2 + K * (0 - E)))
-        # Mise à jour de l'Elo dans la base de données
-        print(f"DEBUG: Ajustement Elo - Vainqueur: {winner.name} ({elo_p1} -> {elo_winner}), Perdant: {loser.name} ({elo_p2} -> {elo_looser})")
+        # 1. Récupération des données actuelles
+        elo_p1, match_winner = await self.bot.db.get_player_data(winner.id, winner.name)
+        elo_p2, match_loser = await self.bot.db.get_player_data(loser.id, loser.name)
+
+        # 2. Facteur K dynamique
+        K_winner = 64 if match_winner < 10 else (40 if match_winner < 30 else 20)
+        K_loser = 64 if match_loser < 10 else (40 if match_loser < 30 else 20)
+
+        # 3. Probabilité attendue de victoire
+        E_winner = 1 / (1 + 10 ** ((elo_p2 - elo_p1) / 400))
+        E_loser = 1 - E_winner
+
+        # 4. Variation et calcul des nouveaux scores
+        gain = round(K_winner * (1 - E_winner))
+        perte = round(K_loser * (0 - E_loser))
+
+        elo_winner = max(0, min(2000, elo_p1 + gain))
+        elo_looser = max(0, min(2000, elo_p2 + perte))
+
+        # 5. Sauvegarde en base de données (mise à jour de l'Elo et incrément des matchs)
         await self.bot.db.record_match(winner.id, elo_winner, winner.name)
         await self.bot.db.record_match(loser.id, elo_looser, loser.name)
 
