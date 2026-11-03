@@ -717,8 +717,8 @@ class Ranked1V1(commands.Cog):
         self.active_matches.pop(channel.id, None)
 
         # Calcul de l'élo
-        elo_p1,_=await self.bot.db.get_player_data(winner.id);
-        elo_p2,_=await self.bot.db.get_player_data(loser.id);
+        elo_p1,_=await self.bot.db.get_player_data(winner.id, winner.name)
+        elo_p2,_=await self.bot.db.get_player_data(loser.id, loser.name)
         E=1 / (1 + 10^((elo_p2 - elo_p1) / 400))
         _, match = await self.bot.db.get_player_data(winner.id, winner.name)
         K=40 if match < 30 else 20
