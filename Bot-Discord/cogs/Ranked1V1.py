@@ -221,12 +221,18 @@ class MatchmakingView(discord.ui.View):
             await interaction.message.edit(embed=embed)
             return
 
+        # Acknowledge the interaction before performing network requests.
+        message = "⚔️ Adversaire trouvé ! Création du salon..."
+        if interaction.response.is_done():
+            await interaction.followup.send(message, ephemeral=True)
+        else:
+            await interaction.response.send_message(message, ephemeral=True)
+
         # Met à jour le message public (la file repasse à 0)
         embed = build_matchmaking_embed(len(queue))
         await interaction.message.edit(embed=embed)
 
         # Création du salon dédié au match
-        await interaction.response.send_message("⚔️ Adversaire trouvé ! Création du salon...", ephemeral=True)
         await self.cog.create_match_channel(interaction.guild, user, opponent)
 
     # --- Bouton : Quitter la file ---
